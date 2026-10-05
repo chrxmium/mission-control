@@ -14,4 +14,7 @@ export interface ScoreSheet {
     m04_hollow: boolean;
     // M05 - Central Haven
     m05_haven: number;
+    // Level Up Challenge - Invasive Attack
+    lu_added: number;
+    lu_contained: number;
 }

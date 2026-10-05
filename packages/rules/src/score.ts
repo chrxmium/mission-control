@@ -63,6 +63,16 @@ export function score(sheet: ScoreSheet): number {
 
     total += sheet.m05_haven * 5;
 
+    // Level Up Challenge - Invasive Attack
+
+    // Each invasive species added before the match is worth 20 points.
+    // Maximum of 5.
+    total += Math.min(sheet.lu_added, 5) * 20;
+
+    // Each invasive species contained during the match is worth 10 points.
+    // No maximum.
+    total += sheet.lu_contained * 10;
+
     return total;
 
 }
