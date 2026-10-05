@@ -12,4 +12,6 @@ export interface ScoreSheet {
     // M04 - Rainforest Awakening
     m04_nest: boolean;
     m04_hollow: boolean;
+    // M05 - Central Haven
+    m05_haven: number;
 }

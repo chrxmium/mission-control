@@ -56,6 +56,13 @@ export function score(sheet: ScoreSheet): number {
         total += 20;
     }
 
+    // M05 - Central Haven
+
+    // Each keystone species or resource resting completely
+    // in the Central Haven is worth 5 points.
+
+    total += sheet.m05_haven * 5;
+
     return total;
 
 }
