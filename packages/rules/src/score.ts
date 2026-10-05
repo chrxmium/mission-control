@@ -73,6 +73,28 @@ export function score(sheet: ScoreSheet): number {
     // No maximum.
     total += sheet.lu_contained * 10;
 
-    return total;
+    // Interference Penalties
+
+    // Each interference penalty is worth -10 points.
+    // No maximum.
+    total += sheet.interference * -10;
+
+    // First interference - subtract 10 points.
+    if (sheet.interference === 1) {
+        total -= 10;
+    }
+
+    // Second interference - the total penalty becomes 30 points.
+    if (sheet.interference === 2) {
+        total -= 30;
+    }
+
+    // Third interference or more - the match score becomes 0.
+    if (sheet.interference >= 3) {
+        total = 0;
+    }
+
+    // The final score cannot be below 0.
+    return Math.max(0, total);
 
 }

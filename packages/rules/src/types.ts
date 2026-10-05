@@ -17,4 +17,6 @@ export interface ScoreSheet {
     // Level Up Challenge - Invasive Attack
     lu_added: number;
     lu_contained: number;
+    // Interference Penalties
+    interference: number;
 }
