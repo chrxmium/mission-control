@@ -36,6 +36,11 @@ export function score(sheet: ScoreSheet): number {
     // Maximum of 15.
     total += Math.min(sheet.m02_canopy, 15) * 10;
 
+    // M03 - Cave Waterfall
+
+    // Each keystone species in the Waterfall is worth 5 points.
+    // Maximum of 50
+    total += Math.min(sheet.m03_waterfall, 50) * 5;
 
     return total;
 

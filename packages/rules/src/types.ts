@@ -7,4 +7,6 @@ export interface ScoreSheet {
     // M02 - Roots of Renewal
     m02_base: number;
     m02_canopy: number;
+    // M03 - Cave Waterfall
+    m03_waterfall: number;
 }
