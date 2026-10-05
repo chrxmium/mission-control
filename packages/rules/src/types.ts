@@ -9,4 +9,7 @@ export interface ScoreSheet {
     m02_canopy: number;
     // M03 - Cave Waterfall
     m03_waterfall: number;
+    // M04 - Rainforest Awakening
+    m04_nest: boolean;
+    m04_hollow: boolean;
 }

@@ -42,6 +42,20 @@ export function score(sheet: ScoreSheet): number {
     // Maximum of 50
     total += Math.min(sheet.m03_waterfall, 50) * 5;
 
+    // M04 - Rainforest Awakening
+
+    // If all keystone species are released from the nest,
+    // award 30 points.
+    if (sheet.m04_nest) {
+        total += 30;
+    }
+
+    // If all keystone species are released from the hollow,
+    // award 20 points.
+    if (sheet.m04_hollow) {
+        total += 20;
+    }
+
     return total;
 
 }
