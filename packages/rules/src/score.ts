@@ -26,6 +26,17 @@ export function score(sheet: ScoreSheet): number {
         total += 40;
     }
 
+    // M02 - Roots of Renewal
+
+    // Each resource in the Grand Tree base is worth 5 points.
+    // No maximum.
+    total += sheet.m02_base * 5;
+
+    // Each resource in the Canopy Chamber is worth 10 points.
+    // Maximum of 15.
+    total += Math.min(sheet.m02_canopy, 15) * 10;
+
+
     return total;
 
 }
