@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "npm --prefix apps/web run dev",
     "test:score": "tsx packages/rules/src/score.test.ts"
   },
   "repository": {
