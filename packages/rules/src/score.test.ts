@@ -1,3 +1,5 @@
+import assert from "node:assert/strict";
+
 import { score } from "./score";
 import type { ScoreSheet } from "./types";
 
@@ -24,4 +26,6 @@ const sample: ScoreSheet = {
     gp: 3
 };
 
-console.log(score(sample));
+assert.equal(score(sample), 455);
+
+console.log("All score tests passed.");
