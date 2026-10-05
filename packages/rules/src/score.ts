@@ -75,10 +75,6 @@ export function score(sheet: ScoreSheet): number {
 
     // Interference Penalties
 
-    // Each interference penalty is worth -10 points.
-    // No maximum.
-    total += sheet.interference * -10;
-
     // First interference - subtract 10 points.
     if (sheet.interference === 1) {
         total -= 10;
