@@ -4,11 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:score": "tsx packages/rules/src/score.test.ts"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/chrxmium/mission-control.git"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "tsx": "^4.23.15"
+  }
 }
