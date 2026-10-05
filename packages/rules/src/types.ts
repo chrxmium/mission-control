@@ -19,4 +19,6 @@ export interface ScoreSheet {
     lu_contained: number;
     // Interference Penalties
     interference: number;
+    // Graceous Professionalism (GP)
+    gp: 2 | 3 | 4;
 }
