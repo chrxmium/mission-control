@@ -56,9 +56,11 @@ export default function RankingsPage() {
             );
 
             if (!response.ok) {
-                throw new Error(
-                    `Request failed with status ${response.status}`,
+                setError(
+                    `Failed to load rankings (${response.status}).`,
                 );
+
+                return;
             }
 
             const data: RankingsResponse =
@@ -69,7 +71,7 @@ export default function RankingsPage() {
             console.error(error);
 
             setError(
-                "Failed to load rankings.",
+                "Failed to connect to the server.",
             );
         } finally {
             setLoading(false);
