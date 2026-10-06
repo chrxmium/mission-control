@@ -1,5 +1,7 @@
 import "dotenv/config";
-
+import { db } from "./db";
+import { teams } from "./db/schema";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 
@@ -11,40 +13,27 @@ if (!adminToken) {
     throw new Error("ADMIN_TOKEN is not set");
 }
 
-const teams: Team[] = [
-    {
-        id: 1,
-        number: 12345,
-        name: "Sample Team Alpha",
-    },
-    {
-        id: 2,
-        number: 67890,
-        name: "Sample Team Beta",
-    },
-];
-
-type Team = {
-    id: number;
-    number: number;
-    name: string;
-};
-
 // GET endpoint requests
 app.get("/health", (c) => {
     return c.json({ ok: true });
 });
 
 app.get("/api/v1/teams", (c) => {
+    const result = db.select().from(teams).all();
+
     return c.json({
-        teams,
+        teams: result,
     });
 });
 
 app.get("/api/v1/teams/:id", (c) => {
     const id = Number(c.req.param("id"));
 
-    const team = teams.find((t) => t.id === id);
+    const team = db
+        .select()
+        .from(teams)
+        .where(eq(teams.id, id))
+        .get();
 
     if (!team) {
         return c.json(
@@ -56,7 +45,7 @@ app.get("/api/v1/teams/:id", (c) => {
     }
 
     return c.json({
-        team, // return the matching team
+        team,
     });
 });
 
@@ -91,16 +80,14 @@ app.post("/api/v1/teams", async (c) => {
         );
     }
 
-    const newTeam: Team = {
-        id:
-            teams.length > 0
-                ? Math.max(...teams.map((t) => t.id)) + 1
-                : 1,
-        number: body.number,
-        name: body.name,
-    };
-
-    teams.push(newTeam);
+    const newTeam = db
+        .insert(teams)
+        .values({
+            number: body.number,
+            name: body.name.trim(),
+        })
+        .returning()
+        .get();
 
     return c.json(
         {
