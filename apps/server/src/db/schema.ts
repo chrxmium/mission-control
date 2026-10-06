@@ -2,6 +2,7 @@ import {
     integer,
     sqliteTable,
     text,
+    uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
 export const teams = sqliteTable("teams", {
@@ -17,7 +18,9 @@ export const teams = sqliteTable("teams", {
         .notNull(),
 });
 
-export const scoresheets = sqliteTable("scoresheets", {
+export const scoresheets = sqliteTable(
+    "scoresheets",
+    {
     id: integer("id").primaryKey({
         autoIncrement: true,
     }),
@@ -74,4 +77,13 @@ export const scoresheets = sqliteTable("scoresheets", {
     totalScore: integer("total_score").notNull(),
 
     submittedAt: text("submitted_at").notNull(),
-});
+    },
+    (table) => ({
+        teamMatchUnique: uniqueIndex(
+            "scoresheets_team_match_unique",
+        ).on(
+            table.teamId,
+            table.matchNumber,
+        ),
+    }),
+);
