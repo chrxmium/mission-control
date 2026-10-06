@@ -21,10 +21,10 @@ import type { ScoreSheet } from "../../../../packages/rules/src/types";
 const teamId = 1;
 const matchNumber = 100;
 const tableNumber = 1;
-const [submitting, setSubmitting] = useState(false);
-const [submitError, setSubmitError] = useState("");
 
 export default function ScorePage() {
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
     const [m01YoungForest, setM01YoungForest] = useState(0);
     const [m01GrandTree, setM01GrandTree] = useState(0);
     const [m01HollowTree, setM01HollowTree] = useState(0);
