@@ -1,19 +1,29 @@
-import { StrictMode, useMemo, useState } from "react";
+import {
+    StrictMode,
+    useMemo,
+    useState,
+} from "react";
+
 import { createRoot } from "react-dom/client";
+
 import {
     CssBaseline,
     ThemeProvider,
     useMediaQuery,
 } from "@mui/material";
 
+import { HashRouter } from "react-router-dom";
+
 import App from "./App";
+
 import {
     createAppTheme,
     type ThemeMode,
 } from "./theme";
 
 function getSavedThemeMode(): ThemeMode {
-    const saved = localStorage.getItem("theme-mode");
+    const saved =
+        localStorage.getItem("theme-mode");
 
     if (
         saved === "light" ||
@@ -34,8 +44,12 @@ function Root() {
         },
     );
 
-    const [themeMode, setThemeMode] =
-        useState<ThemeMode>(getSavedThemeMode);
+    const [
+        themeMode,
+        setThemeMode,
+    ] = useState<ThemeMode>(
+        getSavedThemeMode,
+    );
 
     const resolvedMode =
         themeMode === "system"
@@ -45,28 +59,45 @@ function Root() {
             : themeMode;
 
     const theme = useMemo(
-        () => createAppTheme(resolvedMode),
+        () =>
+            createAppTheme(
+                resolvedMode,
+            ),
         [resolvedMode],
     );
 
-    const changeThemeMode = (mode: ThemeMode) => {
+    const changeThemeMode = (
+        mode: ThemeMode,
+    ) => {
         setThemeMode(mode);
-        localStorage.setItem("theme-mode", mode);
+
+        localStorage.setItem(
+            "theme-mode",
+            mode,
+        );
     };
 
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
 
-            <App
-                themeMode={themeMode}
-                onThemeModeChange={changeThemeMode}
-            />
+            <HashRouter>
+                <App
+                    themeMode={
+                        themeMode
+                    }
+                    onThemeModeChange={
+                        changeThemeMode
+                    }
+                />
+            </HashRouter>
         </ThemeProvider>
     );
 }
 
-createRoot(document.getElementById("root")!).render(
+createRoot(
+    document.getElementById("root")!,
+).render(
     <StrictMode>
         <Root />
     </StrictMode>,
