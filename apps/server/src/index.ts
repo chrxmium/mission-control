@@ -206,6 +206,21 @@ app.post("/api/v1/scoresheets", async (c) => {
         );
     }
 
+    const team = db
+        .select()
+        .from(teams)
+        .where(eq(teams.id, body.teamId))
+        .get();
+
+    if (!team) {
+        return c.json(
+            {
+                error: "Team not found",
+            },
+            404,
+        );
+    }
+
     const sheet: ScoreSheet = {
         m01_young_forest: body.m01_young_forest,
         m01_grand_tree: body.m01_grand_tree,
