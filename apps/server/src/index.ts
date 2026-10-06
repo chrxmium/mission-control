@@ -56,6 +56,40 @@ app.get("/api/v1/teams/:id", (c) => {
     });
 });
 
+app.get("/api/v1/scoresheets", (c) => {
+    const result = db
+        .select()
+        .from(scoresheets)
+        .all();
+
+    return c.json({
+        scoresheets: result,
+    });
+});
+
+app.get("/api/v1/scoresheets/:id", (c) => {
+    const id = Number(c.req.param("id"));
+
+    const scoresheet = db
+        .select()
+        .from(scoresheets)
+        .where(eq(scoresheets.id, id))
+        .get();
+
+    if (!scoresheet) {
+        return c.json(
+            {
+                error: "Scoresheet not found",
+            },
+            404,
+        );
+    }
+
+    return c.json({
+        scoresheet,
+    });
+});
+
 // POST endpoint requests
 
 app.post("/api/v1/teams", async (c) => {
