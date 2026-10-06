@@ -7,10 +7,27 @@ import { serve } from "@hono/node-server";
 import { score } from "../../../packages/rules/src/score";
 import type { ScoreSheet } from "../../../packages/rules/src/types";
 
-const isNonNegativeInteger = (value: unknown) =>
-    typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= 0;
+const isIntegerInRange = (
+    value: unknown,
+    max?: number,
+) => {
+    if (
+        typeof value !== "number" ||
+        !Number.isInteger(value) ||
+        value < 0
+    ) {
+        return false;
+    }
+
+    if (
+        max !== undefined &&
+        value > max
+    ) {
+        return false;
+    }
+
+    return true;
+};
 
 const app = new Hono();
 
@@ -183,19 +200,26 @@ app.post("/api/v1/scoresheets", async (c) => {
     }
 
     if (
-        !isNonNegativeInteger(body.m01_young_forest) ||
-        !isNonNegativeInteger(body.m01_grand_tree) ||
-        !isNonNegativeInteger(body.m01_hollow_tree) ||
+        !isIntegerInRange(body.m01_young_forest, 3) ||
+        !isIntegerInRange(body.m01_grand_tree, 3) ||
+        !isIntegerInRange(body.m01_hollow_tree, 3) ||
         typeof body.m01_queen_knocked_down !== "boolean" ||
-        !isNonNegativeInteger(body.m02_base) ||
-        !isNonNegativeInteger(body.m02_canopy) ||
-        !isNonNegativeInteger(body.m03_waterfall) ||
+
+        !isIntegerInRange(body.m02_base) ||
+        !isIntegerInRange(body.m02_canopy, 15) ||
+
+        !isIntegerInRange(body.m03_waterfall, 50) ||
+
         typeof body.m04_nest !== "boolean" ||
         typeof body.m04_hollow !== "boolean" ||
-        !isNonNegativeInteger(body.m05_haven) ||
-        !isNonNegativeInteger(body.lu_added) ||
-        !isNonNegativeInteger(body.lu_contained) ||
-        !isNonNegativeInteger(body.interference) ||
+
+        !isIntegerInRange(body.m05_haven) ||
+
+        !isIntegerInRange(body.lu_added, 5) ||
+        !isIntegerInRange(body.lu_contained) ||
+
+        !isIntegerInRange(body.interference) ||
+
         ![2, 3, 4].includes(body.gp)
     ) {
         return c.json(
