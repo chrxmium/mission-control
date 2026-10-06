@@ -80,21 +80,32 @@ app.post("/api/v1/teams", async (c) => {
         );
     }
 
-    const newTeam = db
-        .insert(teams)
-        .values({
-            number: body.number,
-            name: body.name.trim(),
-        })
-        .returning()
-        .get();
+    try {
+        const newTeam = db
+            .insert(teams)
+            .values({
+                number: body.number,
+                name: body.name.trim(),
+            })
+            .returning()
+            .get();
 
-    return c.json(
-        {
-            team: newTeam,
-        },
-        201,
-    );
+        return c.json(
+            {
+                team: newTeam,
+            },
+            201,
+        );
+    } catch (error) {
+        console.error(error);
+
+        return c.json(
+            {
+                error: "Team number already exists",
+            },
+            409,
+        );
+    }
 });
 
 serve({
