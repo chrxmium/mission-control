@@ -14,5 +14,8 @@
   "private": true,
   "devDependencies": {
     "tsx": "^4.23.15"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.5"
   }
 }
