@@ -22,7 +22,9 @@ export const scoresheets = sqliteTable("scoresheets", {
         autoIncrement: true,
     }),
 
-    teamId: integer("team_id").notNull(),
+    teamId: integer("team_id")
+        .notNull()
+        .references(() => teams.id),
 
     matchNumber: integer("match_number").notNull(),
     tableNumber: integer("table_number").notNull(),
