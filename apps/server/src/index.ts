@@ -7,7 +7,6 @@ import {
     desc,
     eq,
     max,
-    sql,
 } from "drizzle-orm";
 import { Hono } from "hono";
 import type { MiddlewareHandler } from "hono";
