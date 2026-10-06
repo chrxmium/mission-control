@@ -27,7 +27,9 @@ app.get("/health", (c) => {
 });
 
 app.get("/api/v1/teams", (c) => {
-    return c.json(teams);
+    return c.json({
+        teams,
+    });
 });
 
 serve({
