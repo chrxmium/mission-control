@@ -314,8 +314,6 @@ const isSqliteUniqueConstraintError = (
     "code" in error &&
     error.code === "SQLITE_CONSTRAINT_UNIQUE";
 
-const app = new Hono();
-
 const adminToken = process.env.ADMIN_TOKEN;
 
 if (!adminToken) {
