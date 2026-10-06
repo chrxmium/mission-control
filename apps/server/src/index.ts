@@ -19,14 +19,8 @@ const isIntegerInRange = (
         return false;
     }
 
-    if (
-        max !== undefined &&
-        value > max
-    ) {
-        return false;
-    }
-
-    return true;
+    return !(max !== undefined &&
+        value > max);
 };
 
 const app = new Hono();
