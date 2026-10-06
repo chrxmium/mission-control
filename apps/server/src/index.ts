@@ -60,6 +60,41 @@ app.get("/api/v1/teams/:id", (c) => {
     });
 });
 
+// POST endpoint requests
+
+app.post("/api/v1/teams", async (c) => {
+    const authorisation = c.req.header("Authorization");
+
+    if (authorisation !== `Bearer ${adminToken}`) {
+        return c.json(
+            {
+                error: "Unauthorised",
+            },
+            401,
+        );
+    }
+
+    const body = await c.req.json();
+
+    const newTeam: Team = {
+        id:
+            teams.length > 0
+                ? Math.max(...teams.map((t) => t.id)) + 1
+                : 1,
+        number: body.number,
+        name: body.name,
+    };
+
+    teams.push(newTeam);
+
+    return c.json(
+        {
+            team: newTeam,
+        },
+        201,
+    );
+});
+
 serve({
     fetch: app.fetch,
     port: 3001,
