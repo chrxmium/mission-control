@@ -76,6 +76,21 @@ app.post("/api/v1/teams", async (c) => {
 
     const body = await c.req.json();
 
+    if (
+        typeof body.number !== "number" ||
+        !Number.isInteger(body.number) ||
+        body.number <= 0 ||
+        typeof body.name !== "string" ||
+        body.name.trim().length <= 0
+    ) {
+        return c.json(
+            {
+                error: "Invalid request body",
+            },
+            400,
+        );
+    }
+
     const newTeam: Team = {
         id:
             teams.length > 0
