@@ -4,32 +4,43 @@ import {
     Box,
     Button,
     Container,
+    MenuItem,
     Stack,
+    TextField,
     ToggleButton,
     ToggleButtonGroup,
     Typography,
 } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 
 import MissionCard from "../components/MissionCard";
 import NumberChoices from "../components/NumberChoices";
 import Stepper from "../components/Stepper";
 import YesNo from "../components/YesNo";
 
-import { score } from "../../../../packages/rules/src/score";
-import type { ScoreSheet } from "../../../../packages/rules/src/types";
-
-const teamId = 1;
-const matchNumber = 100;
-const tableNumber = 1;
+import { score } from "../../../../packages/rules/src/score.ts";
+import type { ScoreSheet } from "../../../../packages/rules/src/types.ts";
 
 export default function ScorePage() {
+    const [searchParams] = useSearchParams();
+
+    const teamId = Number(searchParams.get("teamId"));
+    const matchNumber = Number(
+        searchParams.get("matchNumber"),
+    );
+
+    const [tableNumber, setTableNumber] = useState(1);
+
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
+
     const [m01YoungForest, setM01YoungForest] = useState(0);
     const [m01GrandTree, setM01GrandTree] = useState(0);
     const [m01HollowTree, setM01HollowTree] = useState(0);
-    const [m01QueenKnockedDown, setM01QueenKnockedDown] =
-        useState(false);
+    const [
+        m01QueenKnockedDown,
+        setM01QueenKnockedDown,
+    ] = useState(false);
 
     const [m02Base, setM02Base] = useState(0);
     const [m02Canopy, setM02Canopy] = useState(0);
@@ -46,6 +57,12 @@ export default function ScorePage() {
 
     const [interference, setInterference] = useState(0);
     const [gp, setGp] = useState<2 | 3 | 4>(3);
+
+    const hasMatchContext =
+        Number.isInteger(teamId) &&
+        teamId > 0 &&
+        Number.isInteger(matchNumber) &&
+        matchNumber > 0;
 
     const currentSheet: ScoreSheet = {
         m01_young_forest: m01YoungForest,
@@ -73,6 +90,14 @@ export default function ScorePage() {
     const currentScore = score(currentSheet);
 
     const submitScore = async () => {
+        if (!hasMatchContext) {
+            setSubmitError(
+                "This scoresheet is missing its team or match.",
+            );
+
+            return;
+        }
+
         setSubmitting(true);
         setSubmitError("");
 
@@ -104,7 +129,8 @@ export default function ScorePage() {
                 return;
             }
 
-            window.location.hash = `/scoresheet/${data.scoresheet.id}`;
+            window.location.hash =
+                `/scoresheet/${data.scoresheet.id}`;
         } catch (error) {
             console.error(error);
 
@@ -132,9 +158,24 @@ export default function ScorePage() {
                         Score Match
                     </Typography>
 
-                    <Typography color="text.secondary">
-                        Match 1 · Table 1 · Team 12345
+                    <Typography color="text.secondary" sx={{ mb: 2 }}>
+                        Match {matchNumber} · Team ID {teamId}
                     </Typography>
+
+                    <TextField
+                        select
+                        label="Table"
+                        value={tableNumber}
+                        onChange={(event) =>
+                            setTableNumber(Number(event.target.value))
+                        }
+                        sx={{
+                            minWidth: 140,
+                        }}
+                    >
+                        <MenuItem value={1}>Table 1</MenuItem>
+                        <MenuItem value={2}>Table 2</MenuItem>
+                    </TextField>
                 </Box>
 
                 <Stack spacing={2}>
