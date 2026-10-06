@@ -21,62 +21,101 @@ export const teams = sqliteTable("teams", {
 export const scoresheets = sqliteTable(
     "scoresheets",
     {
-    id: integer("id").primaryKey({
-        autoIncrement: true,
-    }),
+        id: integer("id").primaryKey({
+            autoIncrement: true,
+        }),
 
-    teamId: integer("team_id")
-        .notNull()
-        .references(() => teams.id),
+        teamId: integer("team_id")
+            .notNull()
+            .references(() => teams.id),
 
-    matchNumber: integer("match_number").notNull(),
-    tableNumber: integer("table_number").notNull(),
+        matchNumber: integer("match_number")
+            .notNull(),
 
-    // M01 - Mighty Microbiomes
-    m01YoungForest: integer("m01_young_forest").notNull(),
-    m01GrandTree: integer("m01_grand_tree").notNull(),
-    m01HollowTree: integer("m01_hollow_tree").notNull(),
+        tableNumber: integer("table_number")
+            .notNull(),
 
-    m01QueenKnockedDown: integer(
-        "m01_queen_knocked_down",
-        {
-            mode: "boolean",
-        },
-    ).notNull(),
+        // M01 - Mighty Microbiomes
+        m01YoungForest: integer(
+            "m01_young_forest",
+        ).notNull(),
 
-    // M02 - Roots of Renewal
-    m02Base: integer("m02_base").notNull(),
-    m02Canopy: integer("m02_canopy").notNull(),
+        m01GrandTree: integer(
+            "m01_grand_tree",
+        ).notNull(),
 
-    // M03 - Cave Waterfall
-    m03Waterfall: integer("m03_waterfall").notNull(),
+        m01HollowTree: integer(
+            "m01_hollow_tree",
+        ).notNull(),
 
-    // M04 - Rainforest Awakening
-    m04Nest: integer("m04_nest", {
-        mode: "boolean",
-    }).notNull(),
+        m01QueenKnockedDown: integer(
+            "m01_queen_knocked_down",
+            {
+                mode: "boolean",
+            },
+        ).notNull(),
 
-    m04Hollow: integer("m04_hollow", {
-        mode: "boolean",
-    }).notNull(),
+        // M02 - Roots of Renewal
+        m02Base: integer(
+            "m02_base",
+        ).notNull(),
 
-    // M05 - Central Haven
-    m05Haven: integer("m05_haven").notNull(),
+        m02Canopy: integer(
+            "m02_canopy",
+        ).notNull(),
 
-    // Level Up Challenge - Invasive Attack
-    luAdded: integer("lu_added").notNull(),
-    luContained: integer("lu_contained").notNull(),
+        // M03 - Cave Waterfall
+        m03Waterfall: integer(
+            "m03_waterfall",
+        ).notNull(),
 
-    // Interference Penalties
-    interference: integer("interference").notNull(),
+        // M04 - Rainforest Awakening
+        m04Nest: integer(
+            "m04_nest",
+            {
+                mode: "boolean",
+            },
+        ).notNull(),
 
-    // Gracious Professionalism
-    gp: integer("gp").notNull(),
+        m04Hollow: integer(
+            "m04_hollow",
+            {
+                mode: "boolean",
+            },
+        ).notNull(),
 
-    // Calculated final score
-    totalScore: integer("total_score").notNull(),
+        // M05 - Central Haven
+        m05Haven: integer(
+            "m05_haven",
+        ).notNull(),
 
-    submittedAt: text("submitted_at").notNull(),
+        // Level Up Challenge - Invasive Attack
+        luAdded: integer(
+            "lu_added",
+        ).notNull(),
+
+        luContained: integer(
+            "lu_contained",
+        ).notNull(),
+
+        // Interference Penalties
+        interference: integer(
+            "interference",
+        ).notNull(),
+
+        // Gracious Professionalism
+        gp: integer(
+            "gp",
+        ).notNull(),
+
+        // Calculated final score
+        totalScore: integer(
+            "total_score",
+        ).notNull(),
+
+        submittedAt: text(
+            "submitted_at",
+        ).notNull(),
     },
     (table) => ({
         teamMatchUnique: uniqueIndex(

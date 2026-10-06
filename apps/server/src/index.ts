@@ -23,9 +23,23 @@ const isIntegerInRange = (
         return false;
     }
 
-    return !(max !== undefined &&
-        value > max);
+    if (
+        max !== undefined &&
+        value > max
+    ) {
+        return false;
+    }
+
+    return true;
 };
+
+const isSqliteUniqueConstraintError = (
+    error: unknown,
+) =>
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "SQLITE_CONSTRAINT_UNIQUE";
 
 const app = new Hono();
 
@@ -364,9 +378,7 @@ app.post(
 
         try {
             const newScoresheet = db
-                .insert(
-                    scoresheets,
-                )
+                .insert(scoresheets)
                 .values({
                     teamId:
                     body.teamId,
@@ -435,6 +447,16 @@ app.post(
                 201,
             );
         } catch (error) {
+
+            if (isSqliteUniqueConstraintError(error)) {
+                return c.json(
+                    {
+                        error: "Scoresheet already exists for this team and match",
+                    },
+                    409,
+                );
+            }
+
             console.error(error);
 
             return c.json(
