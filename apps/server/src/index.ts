@@ -22,10 +22,10 @@ type Team = {
     name: string;
 };
 
+// GET endpoint requests
 app.get("/health", (c) => {
     return c.json({ ok: true });
 });
-
 
 app.get("/api/v1/teams/:id", (c) => {
     const id = Number(c.req.param("id"));
@@ -39,6 +39,27 @@ app.get("/api/v1/teams/:id", (c) => {
     return c.json({
         team, // if no id input, return all teams
     });
+});
+
+// POST endpoint requests
+
+app.post("/api/v1/teams", async (c) => {
+    const body = await c.req.json();
+
+    const newTeam: Team = {
+        id: teams.length > 0 ? Math.max(...teams.map((t) => t.id)) + 1 : 1,
+        number: body.number,
+        name: body.name,
+    };
+
+    teams.push(newTeam);
+
+    return c.json(
+        {
+            team: newTeam,
+        },
+        201,
+    );
 });
 
 serve({
