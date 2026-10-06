@@ -10,12 +10,32 @@ import {
 } from "drizzle-orm";
 import { Hono } from "hono";
 import type { MiddlewareHandler } from "hono";
+import { cors } from "hono/cors";
 
 import { score } from "../../../packages/rules/src/score";
 import type { ScoreSheet } from "../../../packages/rules/src/types";
 
 import { db } from "./db";
 import { scoresheets, teams } from "./db/schema";
+
+const app = new Hono();
+
+app.use(
+    "/api/*",
+    cors({
+        origin: "http://localhost:5173",
+        allowHeaders: [
+            "Content-Type",
+            "Authorization",
+        ],
+        allowMethods: [
+            "GET",
+            "POST",
+            "PATCH",
+            "OPTIONS",
+        ],
+    }),
+);
 
 const isIntegerInRange = (
     value: unknown,
