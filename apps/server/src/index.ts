@@ -1,11 +1,15 @@
 import "dotenv/config";
-import { db } from "./db";
-import { scoresheets, teams } from "./db/schema";
+
+import { serve } from "@hono/node-server";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
-import { serve } from "@hono/node-server";
+import type { MiddlewareHandler } from "hono";
+
 import { score } from "../../../packages/rules/src/score";
 import type { ScoreSheet } from "../../../packages/rules/src/types";
+
+import { db } from "./db";
+import { scoresheets, teams } from "./db/schema";
 
 const isIntegerInRange = (
     value: unknown,
@@ -19,8 +23,14 @@ const isIntegerInRange = (
         return false;
     }
 
-    return !(max !== undefined &&
-        value > max);
+    if (
+        max !== undefined &&
+        value > max
+    ) {
+        return false;
+    }
+
+    return true;
 };
 
 const app = new Hono();
@@ -31,13 +41,41 @@ if (!adminToken) {
     throw new Error("ADMIN_TOKEN is not set");
 }
 
+const requireAdmin: MiddlewareHandler = async (
+    c,
+    next,
+) => {
+    const authorisation =
+        c.req.header("Authorization");
+
+    if (
+        authorisation !==
+        `Bearer ${adminToken}`
+    ) {
+        return c.json(
+            {
+                error: "Unauthorised",
+            },
+            401,
+        );
+    }
+
+    await next();
+};
+
 // GET endpoint requests
+
 app.get("/health", (c) => {
-    return c.json({ ok: true });
+    return c.json({
+        ok: true,
+    });
 });
 
 app.get("/api/v1/teams", (c) => {
-    const result = db.select().from(teams).all();
+    const result = db
+        .select()
+        .from(teams)
+        .all();
 
     return c.json({
         teams: result,
@@ -45,12 +83,19 @@ app.get("/api/v1/teams", (c) => {
 });
 
 app.get("/api/v1/teams/:id", (c) => {
-    const id = Number(c.req.param("id"));
+    const id = Number(
+        c.req.param("id"),
+    );
 
     const team = db
         .select()
         .from(teams)
-        .where(eq(teams.id, id))
+        .where(
+            eq(
+                teams.id,
+                id,
+            ),
+        )
         .get();
 
     if (!team) {
@@ -67,256 +112,346 @@ app.get("/api/v1/teams/:id", (c) => {
     });
 });
 
-app.get("/api/v1/scoresheets", (c) => {
-    const result = db
-        .select()
-        .from(scoresheets)
-        .all();
+app.get(
+    "/api/v1/scoresheets",
+    (c) => {
+        const result = db
+            .select()
+            .from(scoresheets)
+            .all();
 
-    return c.json({
-        scoresheets: result,
-    });
-});
+        return c.json({
+            scoresheets: result,
+        });
+    },
+);
 
-app.get("/api/v1/scoresheets/:id", (c) => {
-    const id = Number(c.req.param("id"));
-
-    const scoresheet = db
-        .select()
-        .from(scoresheets)
-        .where(eq(scoresheets.id, id))
-        .get();
-
-    if (!scoresheet) {
-        return c.json(
-            {
-                error: "Scoresheet not found",
-            },
-            404,
+app.get(
+    "/api/v1/scoresheets/:id",
+    (c) => {
+        const id = Number(
+            c.req.param("id"),
         );
-    }
 
-    return c.json({
-        scoresheet,
-    });
-});
+        const scoresheet = db
+            .select()
+            .from(scoresheets)
+            .where(
+                eq(
+                    scoresheets.id,
+                    id,
+                ),
+            )
+            .get();
+
+        if (!scoresheet) {
+            return c.json(
+                {
+                    error: "Scoresheet not found",
+                },
+                404,
+            );
+        }
+
+        return c.json({
+            scoresheet,
+        });
+    },
+);
 
 // POST endpoint requests
 
-app.post("/api/v1/teams", async (c) => {
-    const authorisation = c.req.header("Authorization");
+app.post(
+    "/api/v1/teams",
+    requireAdmin,
+    async (c) => {
+        const body =
+            await c.req.json();
 
-    if (authorisation !== `Bearer ${adminToken}`) {
-        return c.json(
-            {
-                error: "Unauthorised",
-            },
-            401,
-        );
-    }
+        if (
+            typeof body.number !== "number" ||
+            !Number.isInteger(
+                body.number,
+            ) ||
+            body.number <= 0 ||
+            typeof body.name !== "string" ||
+            body.name.trim().length <= 0
+        ) {
+            return c.json(
+                {
+                    error: "Invalid request body",
+                },
+                400,
+            );
+        }
 
-    const body = await c.req.json();
+        try {
+            const newTeam = db
+                .insert(teams)
+                .values({
+                    number: body.number,
+                    name: body.name.trim(),
+                })
+                .returning()
+                .get();
 
-    if (
-        typeof body.number !== "number" ||
-        !Number.isInteger(body.number) ||
-        body.number <= 0 ||
-        typeof body.name !== "string" ||
-        body.name.trim().length <= 0
-    ) {
-        return c.json(
-            {
-                error: "Invalid request body",
-            },
-            400,
-        );
-    }
+            return c.json(
+                {
+                    team: newTeam,
+                },
+                201,
+            );
+        } catch (error) {
+            console.error(error);
 
-    try {
-        const newTeam = db
-            .insert(teams)
-            .values({
-                number: body.number,
-                name: body.name.trim(),
-            })
-            .returning()
+            return c.json(
+                {
+                    error: "Team number already exists",
+                },
+                409,
+            );
+        }
+    },
+);
+
+app.post(
+    "/api/v1/scoresheets",
+    requireAdmin,
+    async (c) => {
+        const body =
+            await c.req.json();
+
+        if (
+            typeof body.teamId !== "number" ||
+            !Number.isInteger(
+                body.teamId,
+            ) ||
+            body.teamId <= 0 ||
+            typeof body.matchNumber !== "number" ||
+            !Number.isInteger(
+                body.matchNumber,
+            ) ||
+            body.matchNumber <= 0 ||
+            typeof body.tableNumber !== "number" ||
+            !Number.isInteger(
+                body.tableNumber,
+            ) ||
+            body.tableNumber <= 0
+        ) {
+            return c.json(
+                {
+                    error: "Invalid scoresheet metadata",
+                },
+                400,
+            );
+        }
+
+        if (
+            !isIntegerInRange(
+                body.m01_young_forest,
+                3,
+            ) ||
+            !isIntegerInRange(
+                body.m01_grand_tree,
+                3,
+            ) ||
+            !isIntegerInRange(
+                body.m01_hollow_tree,
+                3,
+            ) ||
+            typeof body.m01_queen_knocked_down !==
+            "boolean" ||
+            !isIntegerInRange(
+                body.m02_base,
+            ) ||
+            !isIntegerInRange(
+                body.m02_canopy,
+                15,
+            ) ||
+            !isIntegerInRange(
+                body.m03_waterfall,
+                50,
+            ) ||
+            typeof body.m04_nest !==
+            "boolean" ||
+            typeof body.m04_hollow !==
+            "boolean" ||
+            !isIntegerInRange(
+                body.m05_haven,
+            ) ||
+            !isIntegerInRange(
+                body.lu_added,
+                5,
+            ) ||
+            !isIntegerInRange(
+                body.lu_contained,
+            ) ||
+            !isIntegerInRange(
+                body.interference,
+            ) ||
+            ![2, 3, 4].includes(
+                body.gp,
+            )
+        ) {
+            return c.json(
+                {
+                    error: "Invalid scoresheet data",
+                },
+                400,
+            );
+        }
+
+        const team = db
+            .select()
+            .from(teams)
+            .where(
+                eq(
+                    teams.id,
+                    body.teamId,
+                ),
+            )
             .get();
 
-        return c.json(
-            {
-                team: newTeam,
-            },
-            201,
-        );
-    } catch (error) {
-        console.error(error);
+        if (!team) {
+            return c.json(
+                {
+                    error: "Team not found",
+                },
+                404,
+            );
+        }
 
-        return c.json(
-            {
-                error: "Team number already exists",
-            },
-            409,
-        );
-    }
-});
+        const sheet: ScoreSheet = {
+            m01_young_forest:
+            body.m01_young_forest,
 
-app.post("/api/v1/scoresheets", async (c) => {
-    const authorisation = c.req.header("Authorization");
+            m01_grand_tree:
+            body.m01_grand_tree,
 
-    if (authorisation !== `Bearer ${adminToken}`) {
-        return c.json(
-            {
-                error: "Unauthorised",
-            },
-            401,
-        );
-    }
+            m01_hollow_tree:
+            body.m01_hollow_tree,
 
-    const body = await c.req.json();
+            m01_queen_knocked_down:
+            body.m01_queen_knocked_down,
 
-    if (
-        typeof body.teamId !== "number" ||
-        !Number.isInteger(body.teamId) ||
-        body.teamId <= 0 ||
-        typeof body.matchNumber !== "number" ||
-        !Number.isInteger(body.matchNumber) ||
-        body.matchNumber <= 0 ||
-        typeof body.tableNumber !== "number" ||
-        !Number.isInteger(body.tableNumber) ||
-        body.tableNumber <= 0
-    ) {
-        return c.json(
-            {
-                error: "Invalid scoresheet metadata",
-            },
-            400,
-        );
-    }
+            m02_base:
+            body.m02_base,
 
-    if (
-        !isIntegerInRange(body.m01_young_forest, 3) ||
-        !isIntegerInRange(body.m01_grand_tree, 3) ||
-        !isIntegerInRange(body.m01_hollow_tree, 3) ||
-        typeof body.m01_queen_knocked_down !== "boolean" ||
+            m02_canopy:
+            body.m02_canopy,
 
-        !isIntegerInRange(body.m02_base) ||
-        !isIntegerInRange(body.m02_canopy, 15) ||
+            m03_waterfall:
+            body.m03_waterfall,
 
-        !isIntegerInRange(body.m03_waterfall, 50) ||
+            m04_nest:
+            body.m04_nest,
 
-        typeof body.m04_nest !== "boolean" ||
-        typeof body.m04_hollow !== "boolean" ||
+            m04_hollow:
+            body.m04_hollow,
 
-        !isIntegerInRange(body.m05_haven) ||
+            m05_haven:
+            body.m05_haven,
 
-        !isIntegerInRange(body.lu_added, 5) ||
-        !isIntegerInRange(body.lu_contained) ||
+            lu_added:
+            body.lu_added,
 
-        !isIntegerInRange(body.interference) ||
+            lu_contained:
+            body.lu_contained,
 
-        ![2, 3, 4].includes(body.gp)
-    ) {
-        return c.json(
-            {
-                error: "Invalid scoresheet data",
-            },
-            400,
-        );
-    }
+            interference:
+            body.interference,
 
-    const team = db
-        .select()
-        .from(teams)
-        .where(eq(teams.id, body.teamId))
-        .get();
+            gp:
+            body.gp,
+        };
 
-    if (!team) {
-        return c.json(
-            {
-                error: "Team not found",
-            },
-            404,
-        );
-    }
+        const totalScore =
+            score(sheet);
 
-    const sheet: ScoreSheet = {
-        m01_young_forest: body.m01_young_forest,
-        m01_grand_tree: body.m01_grand_tree,
-        m01_hollow_tree: body.m01_hollow_tree,
-        m01_queen_knocked_down: body.m01_queen_knocked_down,
+        try {
+            const newScoresheet = db
+                .insert(
+                    scoresheets,
+                )
+                .values({
+                    teamId:
+                    body.teamId,
 
-        m02_base: body.m02_base,
-        m02_canopy: body.m02_canopy,
+                    matchNumber:
+                    body.matchNumber,
 
-        m03_waterfall: body.m03_waterfall,
+                    tableNumber:
+                    body.tableNumber,
 
-        m04_nest: body.m04_nest,
-        m04_hollow: body.m04_hollow,
+                    m01YoungForest:
+                    sheet.m01_young_forest,
 
-        m05_haven: body.m05_haven,
+                    m01GrandTree:
+                    sheet.m01_grand_tree,
 
-        lu_added: body.lu_added,
-        lu_contained: body.lu_contained,
+                    m01HollowTree:
+                    sheet.m01_hollow_tree,
 
-        interference: body.interference,
+                    m01QueenKnockedDown:
+                    sheet.m01_queen_knocked_down,
 
-        gp: body.gp,
-    };
+                    m02Base:
+                    sheet.m02_base,
 
-    const totalScore = score(sheet);
+                    m02Canopy:
+                    sheet.m02_canopy,
 
-    try {
-        const newScoresheet = db
-            .insert(scoresheets)
-            .values({
-                teamId: body.teamId,
-                matchNumber: body.matchNumber,
-                tableNumber: body.tableNumber,
+                    m03Waterfall:
+                    sheet.m03_waterfall,
 
-                m01YoungForest: sheet.m01_young_forest,
-                m01GrandTree: sheet.m01_grand_tree,
-                m01HollowTree: sheet.m01_hollow_tree,
-                m01QueenKnockedDown: sheet.m01_queen_knocked_down,
+                    m04Nest:
+                    sheet.m04_nest,
 
-                m02Base: sheet.m02_base,
-                m02Canopy: sheet.m02_canopy,
+                    m04Hollow:
+                    sheet.m04_hollow,
 
-                m03Waterfall: sheet.m03_waterfall,
+                    m05Haven:
+                    sheet.m05_haven,
 
-                m04Nest: sheet.m04_nest,
-                m04Hollow: sheet.m04_hollow,
+                    luAdded:
+                    sheet.lu_added,
 
-                m05Haven: sheet.m05_haven,
+                    luContained:
+                    sheet.lu_contained,
 
-                luAdded: sheet.lu_added,
-                luContained: sheet.lu_contained,
+                    interference:
+                    sheet.interference,
 
-                interference: sheet.interference,
-                gp: sheet.gp,
+                    gp:
+                    sheet.gp,
 
-                totalScore,
-                submittedAt: new Date().toISOString(),
-            })
-            .returning()
-            .get();
+                    totalScore,
 
-        return c.json(
-            {
-                scoresheet: newScoresheet,
-            },
-            201,
-        );
-    } catch (error) {
-        console.error(error);
+                    submittedAt:
+                        new Date().toISOString(),
+                })
+                .returning()
+                .get();
 
-        return c.json(
-            {
-                error: "Failed to create scoresheet",
-            },
-            500,
-        );
-    }
-});
+            return c.json(
+                {
+                    scoresheet:
+                    newScoresheet,
+                },
+                201,
+            );
+        } catch (error) {
+            console.error(error);
+
+            return c.json(
+                {
+                    error: "Failed to create scoresheet",
+                },
+                500,
+            );
+        }
+    },
+);
 
 serve({
     fetch: app.fetch,
