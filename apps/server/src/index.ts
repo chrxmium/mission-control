@@ -27,39 +27,29 @@ app.get("/health", (c) => {
     return c.json({ ok: true });
 });
 
-app.get("/api/v1/teams/:id", (c) => {
-    const id = Number(c.req.param("id"));
-
-    const team = teams.find((t) => t.id === id); // find the team by id
-
-    if (!team) {
-        return c.json({ error: "Team not found" }, 404); // if no team found, error
-    }
-
+app.get("/api/v1/teams", (c) => {
     return c.json({
-        team, // if no id input, return all teams
+        teams,
     });
 });
 
-// POST endpoint requests
+app.get("/api/v1/teams/:id", (c) => {
+    const id = Number(c.req.param("id"));
 
-app.post("/api/v1/teams", async (c) => {
-    const body = await c.req.json();
+    const team = teams.find((t) => t.id === id);
 
-    const newTeam: Team = {
-        id: teams.length > 0 ? Math.max(...teams.map((t) => t.id)) + 1 : 1,
-        number: body.number,
-        name: body.name,
-    };
+    if (!team) {
+        return c.json(
+            {
+                error: "Team not found",
+            },
+            404,
+        );
+    }
 
-    teams.push(newTeam);
-
-    return c.json(
-        {
-            team: newTeam,
-        },
-        201,
-    );
+    return c.json({
+        team, // return the matching team
+    });
 });
 
 serve({
