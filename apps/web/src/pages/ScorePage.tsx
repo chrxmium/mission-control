@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Alert,
     Box,
@@ -21,6 +21,12 @@ import YesNo from "../components/YesNo";
 import { score } from "../../../../packages/rules/src/score.ts";
 import type { ScoreSheet } from "../../../../packages/rules/src/types.ts";
 
+type Team = {
+    id: number;
+    number: number;
+    name: string;
+};
+
 export default function ScorePage() {
     const [searchParams] = useSearchParams();
 
@@ -33,6 +39,8 @@ export default function ScorePage() {
 
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
+
+    const [team, setTeam] = useState<Team | null>(null);
 
     const [m01YoungForest, setM01YoungForest] = useState(0);
     const [m01GrandTree, setM01GrandTree] = useState(0);
@@ -63,6 +71,35 @@ export default function ScorePage() {
         teamId > 0 &&
         Number.isInteger(matchNumber) &&
         matchNumber > 0;
+
+    useEffect(() => {
+        if (!Number.isInteger(teamId) || teamId <= 0) {
+            return;
+        }
+
+        const loadTeam = async () => {
+            try {
+                const response = await fetch(
+                    `http://localhost:3001/api/v1/teams/${teamId}`,
+                );
+
+                if (!response.ok) {
+                    setTeam(null);
+                    return;
+                }
+
+                const data: { team: Team } =
+                    await response.json();
+
+                setTeam(data.team);
+            } catch (error) {
+                console.error(error);
+                setTeam(null);
+            }
+        };
+
+        loadTeam();
+    }, [teamId]);
 
     const currentSheet: ScoreSheet = {
         m01_young_forest: m01YoungForest,
@@ -159,7 +196,10 @@ export default function ScorePage() {
                     </Typography>
 
                     <Typography color="text.secondary" sx={{ mb: 2 }}>
-                        Match {matchNumber} · Team ID {teamId}
+                        Match {matchNumber}
+                        {team
+                            ? ` · Team ${team.number} · ${team.name}`
+                            : ` · Team ${teamId}`}
                     </Typography>
 
                     <TextField
