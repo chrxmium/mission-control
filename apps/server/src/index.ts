@@ -26,9 +26,18 @@ app.get("/health", (c) => {
     return c.json({ ok: true });
 });
 
-app.get("/api/v1/teams", (c) => {
+
+app.get("/api/v1/teams/:id", (c) => {
+    const id = Number(c.req.param("id"));
+
+    const team = teams.find((t) => t.id === id); // find the team by id
+
+    if (!team) {
+        return c.json({ error: "Team not found" }, 404); // if no team found, error
+    }
+
     return c.json({
-        teams,
+        team, // if no id input, return all teams
     });
 });
 
