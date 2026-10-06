@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+    Alert,
     Box,
     Button,
     Container,
@@ -16,6 +17,12 @@ import YesNo from "../components/YesNo";
 
 import { score } from "../../../../packages/rules/src/score";
 import type { ScoreSheet } from "../../../../packages/rules/src/types";
+
+const teamId = 1;
+const matchNumber = 100;
+const tableNumber = 1;
+const [submitting, setSubmitting] = useState(false);
+const [submitError, setSubmitError] = useState("");
 
 export default function ScorePage() {
     const [m01YoungForest, setM01YoungForest] = useState(0);
@@ -64,6 +71,50 @@ export default function ScorePage() {
     };
 
     const currentScore = score(currentSheet);
+
+    const submitScore = async () => {
+        setSubmitting(true);
+        setSubmitError("");
+
+        try {
+            const response = await fetch(
+                "http://localhost:3001/api/v1/scoresheets",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer change-me-later",
+                    },
+                    body: JSON.stringify({
+                        teamId,
+                        matchNumber,
+                        tableNumber,
+                        ...currentSheet,
+                    }),
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setSubmitError(
+                    data.error ?? "Failed to submit score.",
+                );
+
+                return;
+            }
+
+            window.location.hash = `/scoresheet/${data.scoresheet.id}`;
+        } catch (error) {
+            console.error(error);
+
+            setSubmitError(
+                "Failed to connect to the server.",
+            );
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     return (
         <Box sx={{ pb: 12 }}>
@@ -326,16 +377,24 @@ export default function ScorePage() {
                             </Typography>
                         </Box>
 
+                        {submitError && (
+                            <Alert severity="error">
+                                {submitError}
+                            </Alert>
+                        )}
+
                         <Button
                             variant="contained"
                             size="large"
+                            onClick={submitScore}
+                            disabled={submitting}
                             sx={{
                                 minWidth: 170,
                                 minHeight: 52,
                                 fontWeight: 700,
                             }}
                         >
-                            Submit Score
+                            {submitting ? "Submitting..." : "Submit Score"}
                         </Button>
                     </Stack>
                 </Container>
