@@ -18,6 +18,33 @@ export const teams = sqliteTable("teams", {
         .notNull(),
 });
 
+export const matches = sqliteTable(
+    "matches",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+
+        matchNumber: integer("match_number").notNull(),
+
+        teamId: integer("team_id")
+            .notNull()
+            .references(() => teams.id),
+
+        scheduledAt: text("scheduled_at"),
+
+        status: text("status")
+            .notNull()
+            .default("upcoming"),
+    },
+    (table) => ({
+        matchTeamUnique: uniqueIndex(
+            "matches_match_team_unique",
+        ).on(
+            table.matchNumber,
+            table.teamId,
+        ),
+    }),
+);
+
 export const scoresheets = sqliteTable(
     "scoresheets",
     {
