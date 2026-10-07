@@ -8,6 +8,7 @@ import {
     eq,
     max,
 } from "drizzle-orm";
+import { alias } from "drizzle-orm/sqlite-core";
 import { Hono } from "hono";
 import type { MiddlewareHandler } from "hono";
 import { cors } from "hono/cors";
@@ -23,6 +24,9 @@ import {
 } from "./db/schema";
 
 const app = new Hono();
+
+const team1 = alias(teams, "team1");
+const team2 = alias(teams, "team2");
 
 app.use(
     "/api/*",
@@ -520,20 +524,50 @@ app.get("/api/v1/matches", (c) => {
             scheduledAt: matches.scheduledAt,
             status: matches.status,
 
-            teamId: teams.id,
-            teamNumber: teams.number,
-            teamName: teams.name,
+            team1Id: team1.id,
+            team1Number: team1.number,
+            team1Name: team1.name,
+
+            team2Id: team2.id,
+            team2Number: team2.number,
+            team2Name: team2.name,
         })
         .from(matches)
         .innerJoin(
-            teams,
-            eq(matches.teamId, teams.id),
+            team1,
+            eq(matches.team1Id, team1.id),
+        )
+        .leftJoin(
+            team2,
+            eq(matches.team2Id, team2.id),
         )
         .orderBy(matches.matchNumber)
         .all();
 
+    const formatted = result.map((match) => ({
+        id: match.id,
+        matchNumber: match.matchNumber,
+        scheduledAt: match.scheduledAt,
+        status: match.status,
+
+        team1: {
+            id: match.team1Id,
+            number: match.team1Number,
+            name: match.team1Name,
+        },
+
+        team2:
+            match.team2Id === null
+                ? null
+                : {
+                    id: match.team2Id,
+                    number: match.team2Number,
+                    name: match.team2Name,
+                },
+    }));
+
     return c.json({
-        matches: result,
+        matches: formatted,
     });
 });
 
@@ -755,27 +789,68 @@ app.post(
         }
 
         if (
-            typeof body.teamId !== "number" ||
-            !Number.isInteger(body.teamId) ||
-            body.teamId <= 0
+            typeof body.team1Id !== "number" ||
+            !Number.isInteger(body.team1Id) ||
+            body.team1Id <= 0
         ) {
             return c.json(
-                { error: "Invalid team ID" },
+                { error: "Invalid team 1 ID" },
                 400,
             );
         }
 
-        const team = db
+        const team2Id = body.team2Id ?? null;
+
+        if (
+            team2Id !== null &&
+            (
+                typeof team2Id !== "number" ||
+                !Number.isInteger(team2Id) ||
+                team2Id <= 0
+            )
+        ) {
+            return c.json(
+                { error: "Invalid team 2 ID" },
+                400,
+            );
+        }
+
+        if (team2Id === body.team1Id) {
+            return c.json(
+                {
+                    error:
+                        "A team cannot play against itself",
+                },
+                400,
+            );
+        }
+
+        const firstTeam = db
             .select()
             .from(teams)
-            .where(eq(teams.id, body.teamId))
+            .where(eq(teams.id, body.team1Id))
             .get();
 
-        if (!team) {
+        if (!firstTeam) {
             return c.json(
-                { error: "Team not found" },
+                { error: "Team 1 not found" },
                 404,
             );
+        }
+
+        if (team2Id !== null) {
+            const secondTeam = db
+                .select()
+                .from(teams)
+                .where(eq(teams.id, team2Id))
+                .get();
+
+            if (!secondTeam) {
+                return c.json(
+                    { error: "Team 2 not found" },
+                    404,
+                );
+            }
         }
 
         const scheduledAt =
@@ -789,7 +864,8 @@ app.post(
                 .insert(matches)
                 .values({
                     matchNumber: body.matchNumber,
-                    teamId: body.teamId,
+                    team1Id: body.team1Id,
+                    team2Id,
                     scheduledAt,
                     status: "upcoming",
                 })
@@ -807,7 +883,7 @@ app.post(
                 return c.json(
                     {
                         error:
-                            "This team is already scheduled for that match",
+                            "Match number already exists",
                     },
                     409,
                 );
