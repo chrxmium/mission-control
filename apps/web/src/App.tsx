@@ -7,6 +7,7 @@ import {
 import AppShell from "./components/AppShell";
 
 import AdminPage from "./pages/AdminPage";
+import MatchesPage from "./pages/MatchesPage";
 import RankingsPage from "./pages/RankingsPage";
 import ScorePage from "./pages/ScorePage";
 import ScoresheetPage from "./pages/ScoresheetPage";
@@ -56,6 +57,11 @@ export default function App({
                 <Route
                     path="/unlock"
                     element={<UnlockPage />}
+                />
+
+                <Route
+                    path="/matches"
+                    element={<MatchesPage />}
                 />
 
                 <Route
