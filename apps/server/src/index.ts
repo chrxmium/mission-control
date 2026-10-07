@@ -16,7 +16,11 @@ import { score } from "../../../packages/rules/src/score";
 import type { ScoreSheet } from "../../../packages/rules/src/types";
 
 import { db } from "./db";
-import { scoresheets, teams } from "./db/schema";
+import {
+    matches,
+    scoresheets,
+    teams,
+} from "./db/schema";
 
 const app = new Hono();
 
@@ -508,6 +512,31 @@ app.get("/api/v1/rankings", (c) => {
     });
 });
 
+app.get("/api/v1/matches", (c) => {
+    const result = db
+        .select({
+            id: matches.id,
+            matchNumber: matches.matchNumber,
+            scheduledAt: matches.scheduledAt,
+            status: matches.status,
+
+            teamId: teams.id,
+            teamNumber: teams.number,
+            teamName: teams.name,
+        })
+        .from(matches)
+        .innerJoin(
+            teams,
+            eq(matches.teamId, teams.id),
+        )
+        .orderBy(matches.matchNumber)
+        .all();
+
+    return c.json({
+        matches: result,
+    });
+});
+
 // POST endpoint requests
 
 app.post(
@@ -702,6 +731,92 @@ app.patch(
                 {
                     error: "Failed to save scoresheet",
                 },
+                500,
+            );
+        }
+    },
+);
+
+app.post(
+    "/api/v1/matches",
+    requireAdmin,
+    async (c) => {
+        const body = await c.req.json();
+
+        if (
+            typeof body.matchNumber !== "number" ||
+            !Number.isInteger(body.matchNumber) ||
+            body.matchNumber <= 0
+        ) {
+            return c.json(
+                { error: "Invalid match number" },
+                400,
+            );
+        }
+
+        if (
+            typeof body.teamId !== "number" ||
+            !Number.isInteger(body.teamId) ||
+            body.teamId <= 0
+        ) {
+            return c.json(
+                { error: "Invalid team ID" },
+                400,
+            );
+        }
+
+        const team = db
+            .select()
+            .from(teams)
+            .where(eq(teams.id, body.teamId))
+            .get();
+
+        if (!team) {
+            return c.json(
+                { error: "Team not found" },
+                404,
+            );
+        }
+
+        const scheduledAt =
+            typeof body.scheduledAt === "string" &&
+            body.scheduledAt.trim() !== ""
+                ? body.scheduledAt
+                : null;
+
+        try {
+            const created = db
+                .insert(matches)
+                .values({
+                    matchNumber: body.matchNumber,
+                    teamId: body.teamId,
+                    scheduledAt,
+                    status: "upcoming",
+                })
+                .returning()
+                .get();
+
+            return c.json(
+                { match: created },
+                201,
+            );
+        } catch (error) {
+            if (
+                isSqliteUniqueConstraintError(error)
+            ) {
+                return c.json(
+                    {
+                        error:
+                            "This team is already scheduled for that match",
+                    },
+                    409,
+                );
+            }
+
+            console.error(error);
+
+            return c.json(
+                { error: "Failed to create match" },
                 500,
             );
         }
