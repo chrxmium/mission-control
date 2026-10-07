@@ -23,10 +23,15 @@ export const matches = sqliteTable(
     {
         id: integer("id").primaryKey({ autoIncrement: true }),
 
-        matchNumber: integer("match_number").notNull(),
-
-        teamId: integer("team_id")
+        matchNumber: integer("match_number")
             .notNull()
+            .unique(),
+
+        team1Id: integer("team_1_id")
+            .notNull()
+            .references(() => teams.id),
+
+        team2Id: integer("team_2_id")
             .references(() => teams.id),
 
         scheduledAt: text("scheduled_at"),
@@ -35,14 +40,6 @@ export const matches = sqliteTable(
             .notNull()
             .default("upcoming"),
     },
-    (table) => ({
-        matchTeamUnique: uniqueIndex(
-            "matches_match_team_unique",
-        ).on(
-            table.matchNumber,
-            table.teamId,
-        ),
-    }),
 );
 
 export const scoresheets = sqliteTable(
