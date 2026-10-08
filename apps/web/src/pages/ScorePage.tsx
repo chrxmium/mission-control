@@ -80,7 +80,7 @@ export default function ScorePage() {
         const loadTeam = async () => {
             try {
                 const response = await fetch(
-                    `http://localhost:3001/api/v1/teams/${teamId}`,
+                    `/api/v1/teams/${teamId}`,
                 );
 
                 if (!response.ok) {
@@ -140,7 +140,7 @@ export default function ScorePage() {
 
         try {
             const response = await fetch(
-                "http://localhost:3001/api/v1/scoresheets",
+                "/api/v1/scoresheets",
                 {
                     method: "POST",
                     headers: {

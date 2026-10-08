@@ -69,8 +69,8 @@ export default function MatchesPage() {
         try {
             const [matchesResponse, scoresheetsResponse] =
                 await Promise.all([
-                    fetch("http://localhost:3001/api/v1/matches"),
-                    fetch("http://localhost:3001/api/v1/scoresheets"),
+                    fetch("/api/v1/matches"),
+                    fetch("/api/v1/scoresheets"),
                 ]);
 
             if (!matchesResponse.ok) {

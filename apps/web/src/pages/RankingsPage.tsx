@@ -52,7 +52,7 @@ export default function RankingsPage() {
 
         try {
             const response = await fetch(
-                "http://localhost:3001/api/v1/rankings",
+                "/api/v1/rankings",
             );
 
             if (!response.ok) {

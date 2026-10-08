@@ -89,7 +89,7 @@ export default function MatchPage() {
 
             try {
                 const response = await fetch(
-                    "http://localhost:3001/api/v1/matches",
+                    "/api/v1/matches",
                     { signal: controller.signal },
                 );
 
@@ -180,7 +180,7 @@ export default function MatchPage() {
 
         try {
             const response = await fetch(
-                `http://localhost:3001/api/v1/matches/${match.id}/submit`,
+                `/api/v1/matches/${match.id}/submit`,
                 {
                     method: "POST",
                     headers: {

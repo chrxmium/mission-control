@@ -191,7 +191,7 @@ export default function ScoresheetPage() {
 
             try {
                 const response = await fetch(
-                    `http://localhost:3001/api/v1/scoresheets/${id}`,
+                    `/api/v1/scoresheets/${id}`,
                     { signal: controller.signal },
                 );
 
@@ -217,7 +217,7 @@ export default function ScoresheetPage() {
                 setScoresheet(sheet);
 
                 const teamResponse = await fetch(
-                    `http://localhost:3001/api/v1/teams/${sheet.teamId}`,
+                    `/api/v1/teams/${sheet.teamId}`,
                     { signal: controller.signal },
                 );
 
