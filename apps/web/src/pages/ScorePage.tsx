@@ -225,7 +225,7 @@ export default function ScorePage() {
                     >
                         <NumberChoices
                             label="Keystone species in the Young Forest:"
-                            description="20 points each · Maximum (3)"
+                            description="20 points each · Maximum 3 (60)"
                             value={m01YoungForest}
                             values={[0, 1, 2, 3]}
                             onChange={setM01YoungForest}
@@ -233,7 +233,7 @@ export default function ScorePage() {
 
                         <NumberChoices
                             label="Keystone species in the Grand Tree:"
-                            description="20 points each · Maximum (3)"
+                            description="20 points each · Maximum 3 (60)"
                             value={m01GrandTree}
                             values={[0, 1, 2, 3]}
                             onChange={setM01GrandTree}
@@ -241,7 +241,7 @@ export default function ScorePage() {
 
                         <NumberChoices
                             label="Keystone species in the Hollow Tree:"
-                            description="20 points each · Maximum (3)"
+                            description="20 points each · Maximum 3 (60)"
                             value={m01HollowTree}
                             values={[0, 1, 2, 3]}
                             onChange={setM01HollowTree}
@@ -257,7 +257,6 @@ export default function ScorePage() {
 
                     <MissionCard
                         title="M02 - ROOTS OF RENEWAL"
-                        description="Score the resources in the Grand Tree."
                     >
                         <Stepper
                             label="Resources in the Grand Tree base:"
@@ -268,7 +267,7 @@ export default function ScorePage() {
 
                         <Stepper
                             label="Resources in the Canopy Chamber:"
-                            description="10 points each · Maximum (15)"
+                            description="10 points each · Maximum 3 (15)"
                             value={m02Canopy}
                             max={15}
                             onChange={setM02Canopy}
@@ -277,11 +276,10 @@ export default function ScorePage() {
 
                     <MissionCard
                         title="M03 - CAVE WATERFALL"
-                        description="Score keystone species cycled through the waterfall."
                     >
                         <Stepper
                             label="Keystone species cycled through the waterfall:"
-                            description="5 points each · Maximum (50)"
+                            description="5 points each · Maximum 10 (50)"
                             value={m03Waterfall}
                             max={50}
                             onChange={setM03Waterfall}
@@ -290,7 +288,6 @@ export default function ScorePage() {
 
                     <MissionCard
                         title="M04 - RAINFOREST AWAKENING"
-                        description="Release the keystone species and resources."
                     >
                         <YesNo
                             label="All (3) keystone species are released from the nest:"
@@ -321,11 +318,10 @@ export default function ScorePage() {
 
                     <MissionCard
                         title="LEVEL UP CHALLENGE - INVASIVE ATTACK"
-                        description="Score invasive species added before the match and invasive species in the containment zone."
                     >
                         <NumberChoices
                             label="Invasive species added before the match:"
-                            description="20 points each · Maximum (5)"
+                            description="20 points each · Maximum 5 (100)"
                             value={luAdded}
                             values={[0, 1, 2, 3, 4, 5]}
                             onChange={setLuAdded}
@@ -341,11 +337,10 @@ export default function ScorePage() {
 
                     <MissionCard
                         title="INTERFERENCE"
-                        description="Record this team's total number of interference penalties."
                     >
                         <NumberChoices
                             label="Interferences:"
-                            description="1st: −10 · 2nd: −30 total · 3rd or more: match score becomes 0"
+                            description="1st: −10 · 2nd: −30 total · 3rd: nullified"
                             value={interference}
                             values={[0, 1, 2, 3]}
                             plusLabelForLast

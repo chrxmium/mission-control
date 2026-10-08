@@ -119,11 +119,10 @@ export default function TeamScoreForm({
                 <Stack spacing={2}>
                     <MissionCard
                         title="M01 - MIGHTY MICROBIOMES"
-                        description="Score the keystone species resting in each microbiome."
                     >
                         <NumberChoices
                             label="Keystone species in the Young Forest:"
-                            description="20 points each · Maximum (3)"
+                            description="20 points each · Maximum 3 (60)"
                             value={sheet.m01_young_forest}
                             values={[0, 1, 2, 3]}
                             onChange={(value) =>
@@ -133,7 +132,7 @@ export default function TeamScoreForm({
 
                         <NumberChoices
                             label="Keystone species in the Grand Tree:"
-                            description="20 points each · Maximum (3)"
+                            description="20 points each · Maximum 3 (60)"
                             value={sheet.m01_grand_tree}
                             values={[0, 1, 2, 3]}
                             onChange={(value) =>
@@ -143,7 +142,7 @@ export default function TeamScoreForm({
 
                         <NumberChoices
                             label="Keystone species in the Hollow Tree:"
-                            description="20 points each · Maximum (3)"
+                            description="20 points each · Maximum 3 (60)"
                             value={sheet.m01_hollow_tree}
                             values={[0, 1, 2, 3]}
                             onChange={(value) =>
@@ -153,7 +152,7 @@ export default function TeamScoreForm({
 
                         <YesNo
                             label="Bonus: (3) keystone species are in the Young Forest AND the invasive queen on the opposite side of the field is knocked down:"
-                            description="+40 points"
+                            description="40 points"
                             value={sheet.m01_queen_knocked_down}
                             onChange={(value) =>
                                 updateField(
@@ -166,7 +165,6 @@ export default function TeamScoreForm({
 
                     <MissionCard
                         title="M02 - ROOTS OF RENEWAL"
-                        description="Score the resources in the Grand Tree."
                     >
                         <Stepper
                             label="Resources in the Grand Tree base:"
@@ -179,7 +177,7 @@ export default function TeamScoreForm({
 
                         <Stepper
                             label="Resources in the Canopy Chamber:"
-                            description="10 points each · Maximum (15)"
+                            description="10 points each · Maximum 15 (150)"
                             value={sheet.m02_canopy}
                             max={15}
                             onChange={(value) =>
@@ -190,11 +188,10 @@ export default function TeamScoreForm({
 
                     <MissionCard
                         title="M03 - CAVE WATERFALL"
-                        description="Score keystone species cycled through the waterfall."
                     >
                         <Stepper
                             label="Keystone species cycled through the waterfall:"
-                            description="5 points each · Maximum (50)"
+                            description="5 points each · Maximum 50 (250)"
                             value={sheet.m03_waterfall}
                             max={50}
                             onChange={(value) =>
@@ -205,7 +202,6 @@ export default function TeamScoreForm({
 
                     <MissionCard
                         title="M04 - RAINFOREST AWAKENING"
-                        description="Release the keystone species and resources."
                     >
                         <YesNo
                             label="All (3) keystone species are released from the nest:"
@@ -235,11 +231,10 @@ export default function TeamScoreForm({
 
                     <MissionCard
                         title="LEVEL UP CHALLENGE - INVASIVE ATTACK"
-                        description="Score invasive species added before the match and invasive species in the containment zone."
                     >
                         <NumberChoices
                             label="Invasive species added before the match:"
-                            description="20 points each · Maximum (5)"
+                            description="20 points each · Maximum 5 (100)"
                             value={sheet.lu_added}
                             values={[0, 1, 2, 3, 4, 5]}
                             onChange={(value) =>
@@ -259,11 +254,10 @@ export default function TeamScoreForm({
 
                     <MissionCard
                         title="INTERFERENCE"
-                        description="Record this team's total number of interference penalties."
                     >
                         <NumberChoices
                             label="Interferences:"
-                            description="1st: −10 · 2nd: −30 total · 3rd or more: match score nullified"
+                            description="1st: −10 · 2nd: −30 · 3rd: match score zero"
                             value={sheet.interference}
                             values={[0, 1, 2, 3]}
                             plusLabelForLast
