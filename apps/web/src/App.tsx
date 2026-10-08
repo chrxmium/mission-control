@@ -10,7 +10,6 @@ import AdminPage from "./pages/AdminPage";
 import MatchesPage from "./pages/MatchesPage";
 import MatchPage from "./pages/MatchPage";
 import RankingsPage from "./pages/RankingsPage";
-import ScorePage from "./pages/ScorePage";
 import ScoresheetPage from "./pages/ScoresheetPage";
 import UnlockPage from "./pages/UnlockPage";
 
@@ -37,12 +36,17 @@ export default function App({
             >
                 <Route
                     path="/"
-                    element={
-                        <Navigate
-                            to="/rankings"
-                            replace
-                        />
-                    }
+                    element={<Navigate to="/matches" replace />}
+                />
+
+                <Route
+                    path="/matches"
+                    element={<MatchesPage />}
+                />
+
+                <Route
+                    path="/match/:id"
+                    element={<MatchPage />}
                 />
 
                 <Route
@@ -61,38 +65,13 @@ export default function App({
                 />
 
                 <Route
-                    path="/matches"
-                    element={<MatchesPage />}
-                />
-
-                <Route
-                    path="/match/:id"
-                    element={<MatchPage />}
-                />
-
-                <Route
-                    path="/score/new"
-                    element={<ScorePage />}
-                />
-
-                <Route
-                    path="/score/:id/edit"
-                    element={<ScorePage />}
-                />
-
-                <Route
                     path="/admin"
                     element={<AdminPage />}
                 />
 
                 <Route
                     path="*"
-                    element={
-                        <Navigate
-                            to="/rankings"
-                            replace
-                        />
-                    }
+                    element={<Navigate to="/matches" replace />}
                 />
             </Route>
         </Routes>
