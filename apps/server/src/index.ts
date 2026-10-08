@@ -23,6 +23,12 @@ import {
     teams,
 } from "./db/schema";
 
+import {
+    createSession,
+    verifyPassword,
+    verifySession,
+} from "./auth";
+
 const app = new Hono();
 
 const team1 = alias(teams, "team1");
@@ -343,6 +349,31 @@ const requireAdmin: MiddlewareHandler = async (
             {
                 error: "Unauthorised",
             },
+            401,
+        );
+    }
+
+    await next();
+};
+
+const requireSession: MiddlewareHandler = async (
+    c,
+    next,
+) => {
+    const authorisation = c.req.header("Authorization");
+
+    if (!authorisation?.startsWith("Bearer ")) {
+        return c.json(
+            { error: "Unauthorised" },
+            401,
+        );
+    }
+
+    const token = authorisation.slice(7);
+
+    if (!verifySession(token)) {
+        return c.json(
+            { error: "Invalid or expired session" },
             401,
         );
     }
@@ -901,7 +932,7 @@ app.post(
 
 app.post(
     "/api/v1/matches/:id/submit",
-    requireAdmin,
+    requireSession,
     async (c) => {
         const matchId = Number(c.req.param("id"));
 
@@ -1178,6 +1209,34 @@ app.post(
         }
     },
 );
+
+app.post("/api/v1/auth/login", async (c) => {
+    const body = await c.req.json().catch(() => null);
+
+    if (
+        !body ||
+        typeof body.password !== "string"
+    ) {
+        return c.json(
+            { error: "Invalid request" },
+            400,
+        );
+    }
+
+    if (!verifyPassword(body.password)) {
+        return c.json(
+            { error: "Incorrect password" },
+            401,
+        );
+    }
+
+    const token = createSession();
+
+    return c.json({
+        token,
+        expiresIn: 43200,
+    });
+});
 
 serve({
     fetch: app.fetch,
