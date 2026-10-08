@@ -20,3 +20,19 @@ export interface MatchScoringState {
     team1: TeamMatchScore;
     team2: TeamMatchScore | null;
 }
+
+import { score } from "../../../../packages/rules/src/score.ts";
+
+export function calculateTeamMatchScore(
+    team: TeamMatchScore,
+    sharedM05: number,
+): number {
+    if (team.participation !== "playing") {
+        return 0;
+    }
+
+    return score({
+        ...team.sheet,
+        m05_haven: sharedM05,
+    });
+}
