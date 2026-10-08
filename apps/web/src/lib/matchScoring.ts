@@ -31,7 +31,6 @@ export function isTeamNullified(
 }
 
 // team only gets m05 if they're playing
-/
 export function calculateTeamM05(
     team: TeamMatchScore,
     sharedM05: number,
