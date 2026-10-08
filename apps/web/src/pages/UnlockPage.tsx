@@ -1,7 +1,8 @@
+// hi lol so also yeah this had a qr code thing but it's being remove for now bc mvp thanks bye
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import LockOpenIcon from "@mui/icons-material/LockOpen";
-import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 
 import {
     Alert,
@@ -9,17 +10,21 @@ import {
     Button,
     Card,
     CardContent,
-    Divider,
     Stack,
     TextField,
     Typography,
 } from "@mui/material";
 
 export default function UnlockPage() {
+    const navigate = useNavigate();
+
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handlePasswordUnlock = () => {
+    const handlePasswordUnlock = async () => {
+        if (loading) return;
+
         setError("");
 
         if (!password.trim()) {
@@ -27,13 +32,56 @@ export default function UnlockPage() {
             return;
         }
 
-        // Backend authentication will go here later.
-        console.log("Unlock with password:", password);
-    };
+        setLoading(true);
 
-    const handleQrUnlock = () => {
-        // QR/token authentication will go here later.
-        console.log("Start QR unlock");
+        try {
+            const response = await fetch(
+                "http://localhost:3001/api/v1/auth/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ password }),
+                },
+            );
+
+            const data: {
+                token?: string;
+                error?: string;
+            } = await response.json();
+
+            if (!response.ok) {
+                setError(
+                    data.error ?? "Unable to unlock.",
+                );
+                return;
+            }
+
+            if (!data.token) {
+                setError("Server did not return a session token.");
+                return;
+            }
+
+            // Store the token for this browser tab.
+            sessionStorage.setItem(
+                "referee_token",
+                data.token,
+            );
+
+            setPassword("");
+
+            // Take the referee to the match list.
+            navigate("/matches", { replace: true });
+        } catch (error) {
+            console.error("Login failed:", error);
+
+            setError(
+                "Unable to connect to the server.",
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -58,14 +106,15 @@ export default function UnlockPage() {
                                 variant="h4"
                                 sx={{ fontWeight: 800 }}
                             >
-                                Unlock
+                                Referee Unlock
                             </Typography>
 
                             <Typography
                                 color="text.secondary"
                                 sx={{ mt: 0.5 }}
                             >
-                                Unlock this device for referee access.
+                                Enter the event referee password
+                                to unlock match scoring.
                             </Typography>
                         </Box>
 
@@ -79,14 +128,16 @@ export default function UnlockPage() {
                             <TextField
                                 label="Referee password"
                                 type="password"
+                                autoComplete="current-password"
                                 fullWidth
                                 value={password}
+                                disabled={loading}
                                 onChange={(event) =>
                                     setPassword(event.target.value)
                                 }
                                 onKeyDown={(event) => {
                                     if (event.key === "Enter") {
-                                        handlePasswordUnlock();
+                                        void handlePasswordUnlock();
                                     }
                                 }}
                             />
@@ -95,44 +146,30 @@ export default function UnlockPage() {
                                 variant="contained"
                                 size="large"
                                 startIcon={<LockOpenIcon />}
-                                onClick={handlePasswordUnlock}
+                                onClick={() =>
+                                    void handlePasswordUnlock()
+                                }
+                                disabled={loading}
                                 sx={{
                                     minHeight: 52,
                                     fontWeight: 700,
                                 }}
                             >
-                                Unlock
+                                {loading
+                                    ? "Unlocking..."
+                                    : "Unlock"}
                             </Button>
                         </Stack>
-
-                        <Divider>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                OR
-                            </Typography>
-                        </Divider>
-
-                        <Button
-                            variant="outlined"
-                            size="large"
-                            startIcon={<QrCodeScannerIcon />}
-                            onClick={handleQrUnlock}
-                            sx={{
-                                minHeight: 52,
-                                fontWeight: 700,
-                            }}
-                        >
-                            Unlock with QR Code
-                        </Button>
 
                         <Typography
                             variant="body2"
                             color="text.secondary"
-                            sx={{ textAlign: "center" }}
+                            sx={{
+                                textAlign: "center",
+                            }}
                         >
-                            Referee access is required to enter or edit scores.
+                            Referee access is required
+                            to submit match scores.
                         </Typography>
                     </Stack>
                 </CardContent>

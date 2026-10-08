@@ -170,6 +170,14 @@ export default function MatchPage() {
             return;
         }
 
+        // Check that this browser tab has a referee session.
+        const token = sessionStorage.getItem("referee_token");
+
+        if (!token) {
+            navigate("/unlock");
+            return;
+        }
+
         setSubmitting(true);
         setSubmitError("");
 
@@ -180,7 +188,7 @@ export default function MatchPage() {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: "Bearer change-me-later",
+                        Authorization: `Bearer ${token}`,
                     },
                     body: JSON.stringify({
                         tableNumber,
@@ -203,6 +211,15 @@ export default function MatchPage() {
                 },
             );
 
+            // If the session is invalid or expired,
+            // clear it and require a new login.
+            if (response.status === 401) {
+                sessionStorage.removeItem("referee_token");
+
+                navigate("/unlock");
+                return;
+            }
+
             const data = await response.json();
 
             if (!response.ok) {
@@ -212,10 +229,14 @@ export default function MatchPage() {
                 return;
             }
 
+            // Match successfully submitted.
             navigate("/matches");
         } catch (error) {
-            console.error(error);
-            setSubmitError("Failed to connect to the server.");
+            console.error("Match submission failed:", error);
+
+            setSubmitError(
+                "Failed to connect to the server.",
+            );
         } finally {
             setSubmitting(false);
         }
