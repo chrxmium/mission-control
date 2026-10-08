@@ -62,6 +62,9 @@ export default function MatchPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
+
     const [tableNumber, setTableNumber] = useState(1);
     const [sharedM05, setSharedM05] = useState(0);
 
@@ -161,6 +164,62 @@ export default function MatchPage() {
             sharedM05,
         )
         : null;
+
+    const submitMatch = async () => {
+        if (!match || submitting) {
+            return;
+        }
+
+        setSubmitting(true);
+        setSubmitError("");
+
+        try {
+            const response = await fetch(
+                `http://localhost:3001/api/v1/matches/${match.id}/submit`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer change-me-later",
+                    },
+                    body: JSON.stringify({
+                        tableNumber,
+                        sharedM05,
+
+                        team1: {
+                            teamId: match.team1.id,
+                            participation: team1Participation,
+                            sheet: team1Sheet,
+                        },
+
+                        team2: match.team2
+                            ? {
+                                teamId: match.team2.id,
+                                participation: team2Participation,
+                                sheet: team2Sheet,
+                            }
+                            : null,
+                    }),
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setSubmitError(
+                    data.error ?? "Failed to submit match.",
+                );
+                return;
+            }
+
+            navigate("/matches");
+        } catch (error) {
+            console.error(error);
+            setSubmitError("Failed to connect to the server.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -401,17 +460,27 @@ export default function MatchPage() {
                             )}
                         </Stack>
 
-                        <Button
-                            variant="contained"
-                            size="large"
-                            sx={{
-                                minHeight: 52,
-                                minWidth: 180,
-                                fontWeight: 700,
-                            }}
-                        >
-                            Submit Match
-                        </Button>
+                        <Stack spacing={1}>
+                            {submitError && (
+                                <Alert severity="error">
+                                    {submitError}
+                                </Alert>
+                            )}
+
+                            <Button
+                                variant="contained"
+                                size="large"
+                                onClick={submitMatch}
+                                disabled={submitting}
+                                sx={{
+                                    minHeight: 52,
+                                    minWidth: 180,
+                                    fontWeight: 700,
+                                }}
+                            >
+                                {submitting ? "Submitting..." : "Submit Match"}
+                            </Button>
+                        </Stack>
                     </Stack>
                 </Container>
             </Box>
