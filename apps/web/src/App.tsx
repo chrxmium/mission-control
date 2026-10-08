@@ -8,6 +8,7 @@ import AppShell from "./components/AppShell";
 
 import AdminPage from "./pages/AdminPage";
 import MatchesPage from "./pages/MatchesPage";
+import MatchPage from "./pages/MatchPage";
 import RankingsPage from "./pages/RankingsPage";
 import ScorePage from "./pages/ScorePage";
 import ScoresheetPage from "./pages/ScoresheetPage";
@@ -62,6 +63,11 @@ export default function App({
                 <Route
                     path="/matches"
                     element={<MatchesPage />}
+                />
+
+                <Route
+                    path="/match/:id"
+                    element={<MatchPage />}
                 />
 
                 <Route
