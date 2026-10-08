@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+**/*.db
+**/*.db-shm
+**/*.db-wal
+
+.git
+.gitignore
+
+**/.DS_Store
+**/*.log
