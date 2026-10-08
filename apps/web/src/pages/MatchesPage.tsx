@@ -13,15 +13,20 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+type Team = {
+    id: number;
+    number: number;
+    name: string;
+};
+
 type Match = {
     id: number;
     matchNumber: number;
     scheduledAt: string | null;
     status: string;
 
-    teamId: number;
-    teamNumber: number;
-    teamName: string;
+    team1: Team;
+    team2: Team | null;
 };
 
 type MatchesResponse = {
@@ -72,9 +77,7 @@ export default function MatchesPage() {
     }, []);
 
     const openMatch = (match: Match) => {
-        navigate(
-            `/score/new?teamId=${match.teamId}&matchNumber=${match.matchNumber}`,
-        );
+        navigate(`/match/${match.id}`);
     };
 
     return (
@@ -124,19 +127,13 @@ export default function MatchesPage() {
                                 variant="outlined"
                             >
                                 <CardContent>
-                                    <Stack
-                                        direction={{
-                                            xs: "column",
-                                            sm: "row",
-                                        }}
-                                        spacing={2}
-                                        alignItems={{
-                                            xs: "stretch",
-                                            sm: "center",
-                                        }}
-                                        justifyContent="space-between"
-                                    >
-                                        <Stack spacing={0.5}>
+                                    <Stack spacing={2}>
+                                        <Stack
+                                            direction="row"
+                                            spacing={1}
+                                            alignItems="center"
+                                            justifyContent="space-between"
+                                        >
                                             <Stack
                                                 direction="row"
                                                 spacing={1}
@@ -144,41 +141,16 @@ export default function MatchesPage() {
                                             >
                                                 <Typography
                                                     variant="h6"
-                                                    sx={{
-                                                        fontWeight: 800,
-                                                    }}
+                                                    sx={{ fontWeight: 800 }}
                                                 >
-                                                    Match{" "}
-                                                    {
-                                                        match.matchNumber
-                                                    }
+                                                    Match {match.matchNumber}
                                                 </Typography>
 
                                                 <Chip
                                                     size="small"
-                                                    label={
-                                                        match.status
-                                                    }
+                                                    label={match.status}
                                                 />
                                             </Stack>
-
-                                            <Typography
-                                                variant="h6"
-                                                sx={{
-                                                    fontWeight: 700,
-                                                }}
-                                            >
-                                                Team{" "}
-                                                {
-                                                    match.teamNumber
-                                                }
-                                            </Typography>
-
-                                            <Typography color="text.secondary">
-                                                {
-                                                    match.teamName
-                                                }
-                                            </Typography>
 
                                             {match.scheduledAt && (
                                                 <Typography
@@ -198,19 +170,94 @@ export default function MatchesPage() {
                                             )}
                                         </Stack>
 
+                                        <Stack
+                                            direction={{
+                                                xs: "column",
+                                                sm: "row",
+                                            }}
+                                            spacing={2}
+                                            alignItems="center"
+                                            justifyContent="center"
+                                        >
+                                            <Box
+                                                sx={{
+                                                    flex: 1,
+                                                    width: "100%",
+                                                    textAlign: {
+                                                        xs: "left",
+                                                        sm: "right",
+                                                    },
+                                                }}
+                                            >
+                                                <Typography
+                                                    variant="h5"
+                                                    sx={{ fontWeight: 800 }}
+                                                >
+                                                    {match.team1.number}
+                                                </Typography>
+
+                                                <Typography color="text.secondary">
+                                                    {match.team1.name}
+                                                </Typography>
+                                            </Box>
+
+                                            {match.team2 ? (
+                                                <>
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: 900,
+                                                            color: "text.secondary",
+                                                        }}
+                                                    >
+                                                        VS
+                                                    </Typography>
+
+                                                    <Box
+                                                        sx={{
+                                                            flex: 1,
+                                                            width: "100%",
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            variant="h5"
+                                                            sx={{ fontWeight: 800 }}
+                                                        >
+                                                            {match.team2.number}
+                                                        </Typography>
+
+                                                        <Typography color="text.secondary">
+                                                            {match.team2.name}
+                                                        </Typography>
+                                                    </Box>
+                                                </>
+                                            ) : (
+                                                <Box
+                                                    sx={{
+                                                        flex: 1,
+                                                        width: "100%",
+                                                    }}
+                                                >
+                                                    <Chip
+                                                        label="Solo / Remote Match"
+                                                        variant="outlined"
+                                                    />
+                                                </Box>
+                                            )}
+                                        </Stack>
+
                                         <Button
                                             variant="contained"
                                             size="large"
+                                            fullWidth
                                             onClick={() =>
                                                 openMatch(match)
                                             }
                                             sx={{
-                                                minWidth: 150,
-                                                minHeight: 48,
+                                                minHeight: 50,
                                                 fontWeight: 700,
                                             }}
                                         >
-                                            Score Match
+                                            Open Match
                                         </Button>
                                     </Stack>
                                 </CardContent>
