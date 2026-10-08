@@ -517,58 +517,58 @@ app.get("/api/v1/rankings", (c) => {
 });
 
 app.get("/api/v1/matches", (c) => {
-    const result = db
-        .select({
-            id: matches.id,
-            matchNumber: matches.matchNumber,
-            scheduledAt: matches.scheduledAt,
-            status: matches.status,
+const result = db
+    .select({
+        id: matches.id,
+        matchNumber: matches.matchNumber,
+        scheduledAt: matches.scheduledAt,
+        status: matches.status,
 
-            team1Id: team1.id,
-            team1Number: team1.number,
-            team1Name: team1.name,
+        team1Id: team1.id,
+        team1Number: team1.number,
+        team1Name: team1.name,
 
-            team2Id: team2.id,
-            team2Number: team2.number,
-            team2Name: team2.name,
-        })
-        .from(matches)
-        .innerJoin(
-            team1,
-            eq(matches.team1Id, team1.id),
-        )
-        .leftJoin(
-            team2,
-            eq(matches.team2Id, team2.id),
-        )
-        .orderBy(matches.matchNumber)
-        .all();
+        team2Id: team2.id,
+        team2Number: team2.number,
+        team2Name: team2.name,
+    })
+    .from(matches)
+    .innerJoin(
+        team1,
+        eq(matches.team1Id, team1.id),
+    )
+    .leftJoin(
+        team2,
+        eq(matches.team2Id, team2.id),
+    )
+    .orderBy(matches.matchNumber)
+    .all();
 
-    const formatted = result.map((match) => ({
-        id: match.id,
-        matchNumber: match.matchNumber,
-        scheduledAt: match.scheduledAt,
-        status: match.status,
+const formatted = result.map((match) => ({
+    id: match.id,
+    matchNumber: match.matchNumber,
+    scheduledAt: match.scheduledAt,
+    status: match.status,
 
-        team1: {
-            id: match.team1Id,
-            number: match.team1Number,
-            name: match.team1Name,
-        },
+    team1: {
+        id: match.team1Id,
+        number: match.team1Number,
+        name: match.team1Name,
+    },
 
-        team2:
-            match.team2Id === null
-                ? null
-                : {
-                    id: match.team2Id,
-                    number: match.team2Number,
-                    name: match.team2Name,
-                },
-    }));
+    team2:
+        match.team2Id === null
+            ? null
+            : {
+                id: match.team2Id,
+                number: match.team2Number,
+                name: match.team2Name,
+            },
+}));
 
-    return c.json({
-        matches: formatted,
-    });
+return c.json({
+    matches: formatted,
+});
 });
 
 // POST endpoint requests
