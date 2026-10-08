@@ -194,7 +194,7 @@ export default function MatchesPage() {
                                                     sx={{ fontWeight: 800 }}
                                                 >
                                                     {match.team1.number}
-                                                </Typography>
+                              `                  </Typography>
 
                                                 <Typography color="text.secondary">
                                                     {match.team1.name}
