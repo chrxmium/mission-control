@@ -124,21 +124,15 @@ export default function MatchesPage() {
 
         return (
             <Stack
-                key={team.id}
-                direction={{
-                    xs: "column",
-                    sm: "row",
-                }}
+                direction={{ xs: "column", sm: "row" }}
                 spacing={2}
-                alignItems={{
-                    xs: "stretch",
-                    sm: "center",
+                sx={{
+                    alignItems: { xs: "stretch", sm: "center" },
+                    justifyContent: "space-between",
                 }}
-                justifyContent="space-between"
-                sx={{ py: 1.5 }}
             >
                 <Box>
-                    <Typography fontWeight={700}>
+                    <Typography sx={{ fontWeight: 700 }}>
                         Team {team.number}
                     </Typography>
 
@@ -153,10 +147,12 @@ export default function MatchesPage() {
                 <Stack
                     direction="row"
                     spacing={2}
-                    alignItems="center"
-                    justifyContent="space-between"
+                    sx={{
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                    }}
                 >
-                    <Typography variant="h5" fontWeight={800}>
+                    <Typography variant="h5" sx={{ fontWeight: 800 }}>
                         {sheet?.totalScore ?? "—"}
                     </Typography>
 
@@ -186,14 +182,12 @@ export default function MatchesPage() {
                         sm: "row",
                     }}
                     spacing={2}
-                    justifyContent="space-between"
-                    alignItems={{
-                        xs: "stretch",
-                        sm: "center",
-                    }}
-                >
+sx={{
+                            alignItems: { xs: "stretch", sm: "center" },
+                            justifyContent: "space-between",
+                        }}>
                     <Box>
-                        <Typography variant="h4" fontWeight={800}>
+                        <Typography variant="h4" sx={{ fontWeight: 800 }}>
                             Matches
                         </Typography>
 
@@ -251,22 +245,18 @@ export default function MatchesPage() {
                                                     sm: "row",
                                                 }}
                                                 spacing={2}
-                                                justifyContent="space-between"
-                                                alignItems={{
-                                                    xs: "stretch",
-                                                    sm: "center",
-                                                }}
-                                            >
+sx={{
+                            alignItems: { xs: "stretch", sm: "center" },
+                            justifyContent: "space-between",
+                        }}>
                                                 <Box>
                                                     <Stack
                                                         direction="row"
                                                         spacing={1}
-                                                        alignItems="center"
-                                                    >
+                                                     sx={{ alignItems: "center" }}>
                                                         <Typography
                                                             variant="h6"
-                                                            fontWeight={800}
-                                                        >
+                                                         sx={{ fontWeight: 800 }}>
                                                             Match{" "}
                                                             {match.matchNumber}
                                                         </Typography>
@@ -288,8 +278,10 @@ export default function MatchesPage() {
                                                     </Stack>
 
                                                     <Typography
-                                                        sx={{ mt: 1 }}
-                                                        fontWeight={600}
+                                                        sx={{
+                                                            mt: 1,
+                                                            fontWeight: 600,
+                                                        }}
                                                     >
                                                         Team{" "}
                                                         {match.team1.number}
@@ -372,8 +364,10 @@ export default function MatchesPage() {
 
                                                     <Typography
                                                         variant="subtitle1"
-                                                        fontWeight={800}
-                                                        sx={{ mt: 1 }}
+                                                        sx={{
+                                                            mt: 1,
+                                                            fontWeight: 800,
+                                                        }}
                                                     >
                                                         Match Results
                                                     </Typography>

@@ -60,14 +60,16 @@ export default function TeamScoreForm({
             <Box>
                 <Stack
                     direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
                     spacing={1}
+                    sx={{
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                    }}
                 >
                     <Box>
                         <Typography
                             variant="h5"
-                            fontWeight={800}
+                            sx={{ fontWeight: 800 }}
                         >
                             Team {teamNumber}
                         </Typography>

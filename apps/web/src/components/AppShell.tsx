@@ -166,8 +166,8 @@ export default function AppShell({
                         <Stack
                             direction="row"
                             spacing={1}
-                            alignItems="center"
                             sx={{
+                                alignItems: "center",
                                 ml: "auto",
                                 display: {
                                     xs: "none",

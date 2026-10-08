@@ -298,17 +298,15 @@ export default function ScoresheetPage() {
                         xs: "column",
                         sm: "row",
                     }}
-                    spacing={2}
-                    justifyContent="space-between"
-                    alignItems={{
-                        xs: "flex-start",
-                        sm: "center",
+                    spacing={3}
+                    sx={{
+                        justifyContent: "space-between",
                     }}
                 >
                     <Box>
                         <Typography
                             variant="h4"
-                            fontWeight={800}
+                            sx={{ fontWeight: 800 }}
                         >
                             Scoresheet
                         </Typography>
@@ -336,12 +334,11 @@ export default function ScoresheetPage() {
                                 sm: "row",
                             }}
                             spacing={3}
-                            justifyContent="space-between"
-                        >
+                         sx={{ justifyContent: "space-between" }}>
                             <Box>
                                 <Typography
                                     variant="h5"
-                                    fontWeight={800}
+                                    sx={{ fontWeight: 800 }}
                                 >
                                     {team
                                         ? `Team ${team.number}`
@@ -382,7 +379,7 @@ export default function ScoresheetPage() {
 
                                 <Typography
                                     variant="h3"
-                                    fontWeight={900}
+                                    sx={{ fontWeight: 900 }}
                                 >
                                     {scoresheet.totalScore}
                                 </Typography>
@@ -405,8 +402,7 @@ export default function ScoresheetPage() {
                         <CardContent>
                             <Typography
                                 variant="h6"
-                                fontWeight={800}
-                                sx={{ mb: 1.5 }}
+                                sx={{ fontWeight: 800, mb: 1.5 }}
                             >
                                 {mission.title}
                             </Typography>
@@ -420,16 +416,18 @@ export default function ScoresheetPage() {
                                             key={label}
                                             direction="row"
                                             spacing={2}
-                                            justifyContent="space-between"
-                                            alignItems="center"
-                                            sx={{ py: 1.25 }}
+                                            sx={{
+                                                py: 1.25,
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                            }}
                                         >
                                             <Typography>
                                                 {label}
                                             </Typography>
 
                                             <Typography
-                                                fontWeight={700}
+                                                sx={{ fontWeight: 700 }}
                                             >
                                                 {value}
                                             </Typography>
@@ -450,7 +448,7 @@ export default function ScoresheetPage() {
                             Submitted at
                         </Typography>
 
-                        <Typography fontWeight={600}>
+                        <Typography sx={{ fontWeight: 600 }}>
                             {submittedAt}
                         </Typography>
                     </CardContent>

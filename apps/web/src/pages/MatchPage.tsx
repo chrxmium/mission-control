@@ -4,13 +4,10 @@ import {
     Alert,
     Box,
     Button,
-    Card,
-    CardContent,
     Chip,
     CircularProgress,
     Container,
     Grid,
-    MenuItem,
     Stack,
     TextField,
     Typography,
@@ -281,18 +278,15 @@ export default function MatchPage() {
                 <Stack spacing={3}>
                     <Stack
                         direction={{ xs: "column", sm: "row" }}
-                        justifyContent="space-between"
-                        alignItems={{
-                            xs: "stretch",
-                            sm: "center",
-                        }}
-                        spacing={2}
-                    >
+spacing={2}
+                     sx={{
+                            alignItems: { xs: "stretch", sm: "center" },
+                            justifyContent: "space-between",
+                        }}>
                         <Box>
                             <Typography
                                 variant="h4"
-                                fontWeight={800}
-                            >
+                             sx={{ fontWeight: 800 }}>
                                 Match {match.matchNumber}
                             </Typography>
 
@@ -307,8 +301,7 @@ export default function MatchPage() {
                         <Stack
                             direction="row"
                             spacing={2}
-                            alignItems="center"
-                        >
+                         sx={{ alignItems: "center" }}>
                             <Chip
                                 label={match.status}
                                 variant="outlined"
@@ -435,16 +428,14 @@ export default function MatchPage() {
                     <Stack
                         direction={{ xs: "column", sm: "row" }}
                         spacing={2}
-                        alignItems={{
-                            xs: "stretch",
-                            sm: "center",
-                        }}
-                        justifyContent="space-between"
-                    >
+sx={{
+                            alignItems: { xs: "stretch", sm: "center" },
+                            justifyContent: "space-between",
+                        }}>
                         <Stack
                             direction="row"
                             spacing={3}
-                            flexWrap="wrap"
+                            sx={{ flexWrap: "wrap" }}
                         >
                             <Box>
                                 <Typography
@@ -456,7 +447,7 @@ export default function MatchPage() {
 
                                 <Typography
                                     variant="h5"
-                                    fontWeight={800}
+                                    sx={{ fontWeight: 800 }}
                                 >
                                     {team1Score}
                                 </Typography>
@@ -473,7 +464,7 @@ export default function MatchPage() {
 
                                     <Typography
                                         variant="h5"
-                                        fontWeight={800}
+                                        sx={{ fontWeight: 800 }}
                                     >
                                         {team2Score}
                                     </Typography>
