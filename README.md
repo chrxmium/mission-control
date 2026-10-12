@@ -1,127 +1,42 @@
 # Mission Control
 
-**Mission Control** is an open-source competition scoring and event management platform, initially developed for the **FIRST LEGO League (FLL) 2026–2027 Future Edition — BIOGLOW** challenge.
+**Mission Control** is an open-source scoring and event management platform built for the **FIRST LEGO® League 2026–2027 Future Edition (BIOGLOW)** challenge.
 
-It provides a centralised interface for referees to score matches, submit results, review scoresheets, and track team rankings.
+It lets referees score matches, submit results, review scoresheets, and track rankings, all from a centralised web interface.
 
-Mission Control is designed to be self-hosted, tablet-friendly, and adaptable to different competition formats.
+Designed for FIRST scoring tablets, self-hosting, and eventually supporting other competitions and seasons.
+
+Made for **Hack Club's YSWS Terra**. Hello reviewers!!
 
 > [!NOTE]
-> Mission Control is currently an MVP under active development. Some administrative and competition management features are planned but not yet implemented. (lool pls i want to ship.. i need my carrots pls olive pls)
-
-## AI Declaration
-Artificial intelligence (AI) was used throughout the development of this project as a development aid, learning resource, and collaborative planning tool.
-AI was not granted direct access to the repository, development environment, or project files for the purpose of independently modifying or implementing the project. All code was reviewed, integrated, tested, and maintained manually by a human developer.
-The project's direction, implementation decisions, and overall development remained under human control. AI assistance was primarily used for the following purposes:
-- Frontend development: Designing and generating significant portions of the user interface, including React components, page layouts, and styling.
-- Architecture and planning: Collaboratively planning the application's structure, API endpoints, database design, and implementation approach.
-- Code review and refactoring: Identifying errors, troubleshooting issues, suggesting improvements, and helping restructure existing code.
-- Learning and guidance: Explaining programming concepts, development practices, and the reasoning behind implementation decisions.
-- Implementation examples: Providing reference code, demonstrating how features could be implemented, and helping complete specific sections of code.
-While AI-generated code and suggestions were incorporated into the project, AI did not autonomously develop, modify, or manage the codebase. All AI contributions were subject to human review and implementation.
+> Mission Control is still an MVP under active development. Please report bugs and feature requests through [GitHub Issues](https://github.com/chrxmium/mission-control/issues).
+>
+> Some administrative and event management features aren't finished yet. (lool pls i want to ship.. i need my carrots pls olive pls)
 
 ## Features
 
-### Match Scoring
+- **Match scoring:** Score two teams simultaneously, with live calculations, shared missions, interference penalties, no-shows, and Gracious Professionalism ratings.
+- **Match management:** View scheduled matches, submit results, prevent duplicate submissions, and review completed scoresheets.
+- **Rankings:** Automatically calculate rankings, average scores, highest scores, and completed match counts.
+- **Referee authentication:** Password-protected scoring with 12-hour sessions.
+- **Self-hosting:** Docker deployment with SQLite persistence, TrueNAS SCALE support, and Cloudflare Tunnel compatibility.
 
-- Score two teams simultaneously using a single referee device.
-- Responsive scoring interface designed for tablets.
-- Live score calculations as mission values change.
-- Support for solo and remote matches.
-- Configurable table number when scoring.
-- Shared mission scoring for M05 (Central Haven).
-- Support for team no-shows.
-- Automatic score nullification after three interference violations.
-- Gracious Professionalism ratings.
-- Backend score validation and calculation.
+The frontend and backend share the same TypeScript scoring rules to keep calculations consistent.
 
-### Match Management
-
-- View scheduled matches and participating teams.
-- Open upcoming matches for scoring.
-- Submit both teams' results in a single database transaction.
-- Automatically update match status after submission.
-- Prevent duplicate submissions.
-- Review results for completed matches.
-- Open individual submitted scoresheets.
-
-### Rankings and Results
-
-- Automatically calculate team rankings from saved scoresheets.
-- Display average scores and highest scores.
-- Display completed match counts.
-- View individual mission values.
-- View final scores and submission timestamps.
-
-The current ranking implementation uses a simple average of recorded scores. Advanced ranking eligibility rules and competition stages are planned for future versions.
-
-### Referee Authentication
-
-- Password-based referee access.
-- Server-generated session tokens.
-- Session expiration after 12 hours.
-- Protected match submission endpoint.
-- Referee unlock interface.
-
-Authentication is currently intended for initial deployments and controlled environments. Additional security improvements are planned.
-
-### Self-Hosting
-
-- Docker-based deployment.
-- Persistent SQLite database.
-- Nginx reverse proxy.
-- Support for TrueNAS SCALE custom applications.
-- Compatible with Cloudflare Tunnel.
-- No inbound router port forwarding required when using Cloudflare Tunnel.
-
----
-
-## Technology Stack
+## Tech Stack
 
 | Component | Technology |
 |---|---|
-| Frontend | React, TypeScript |
-| UI framework | Material UI |
-| Build tool | Vite |
-| Routing | React Router |
+| Frontend | React, TypeScript, Material UI, Vite |
 | Backend | Node.js, Hono |
-| Database | SQLite |
-| ORM | Drizzle ORM |
-| SQLite driver | better-sqlite3 |
-| Containerisation | Docker |
-| Reverse proxy | Nginx |
-| Container registry | GitHub Container Registry |
+| Database | SQLite, Drizzle ORM |
+| Deployment | Docker, Nginx, GHCR |
 | CI/CD | GitHub Actions |
 | Remote access | Cloudflare Tunnel |
 
-The frontend and backend share TypeScript scoring rules to maintain consistent calculations.
-
-### Frontend
-
-The frontend provides the referee scoring interface, match list, rankings, authentication screen, and submitted scoresheet viewer.
-
-### Backend
-
-The backend manages teams, matches, scoresheets, rankings, authentication, and database operations.
-
-### Shared Rules
-
-The `packages/rules` directory contains the competition scoring engine.
-
-Using shared scoring rules helps prevent differences between frontend score previews and backend score calculations.
-
----
-
 ## Getting Started
 
-### Prerequisites
-
-For local development:
-
-- Node.js
-- npm
-- SQLite
-- Git
+**Requirements:** Node.js, npm, and Git.
 
 ### 1. Clone the Repository
 
@@ -131,8 +46,6 @@ cd mission-control
 ```
 
 ### 2. Install Dependencies
-
-Install the frontend and backend dependencies:
 
 ```bash
 cd apps/web
@@ -144,106 +57,55 @@ npm install
 
 ### 3. Configure the Backend
 
-Create an `.env` file inside `apps/server/`.
-
-Example:
+Create an `.env` file inside `apps/server/`:
 
 ```dotenv
 PORT=3001
 DATABASE_URL=mission-control.db
-ADMIN_TOKEN=replace-with-a-random-admin-token
-REFEREE_PASSWORD=replace-with-a-secure-referee-password
+ADMIN_TOKEN=your-random-admin-token
+REFEREE_PASSWORD=your-referee-password
 ```
 
-Generate an administrator token:
+Generate a secure administrator token using:
 
 ```bash
 openssl rand -hex 32
 ```
 
-Never commit `.env` files or production credentials.
+Or use your own securely generated token. Just make sure it's strong and don't commit it to GitHub! 
 
 ### 4. Initialise the Database
 
-Mission Control uses SQLite and Drizzle ORM.
-
-From `apps/server/`, run:
+From `apps/server/`:
 
 ```bash
 npm run db:migrate
 ```
 
-The configured migrations must match the database schema expected by the running application.
-
-For an existing deployment, back up the database before applying migrations.
-
 ### 5. Start the Backend
-
-From `apps/server/`:
 
 ```bash
 npm run dev
-```
-
-The backend is accessible at:
-
-```text
-http://localhost:3001
 ```
 
 ### 6. Start the Frontend
 
-In another terminal, navigate to `apps/web/`:
-
-```bash
-npm run dev
-```
-
-Open:
-
-```text
-http://localhost:5173
-```
-
-The Vite development proxy forwards `/api` requests to the backend running on port `3001`.
-
----
-
-## Building for Production
-
-Build the frontend:
+In another terminal, from the repository root:
 
 ```bash
 cd apps/web
-npm run build
+npm run dev
 ```
 
-Build the backend:
+Open **http://localhost:5173**.
 
-```bash
-cd apps/server
-npm run build
-```
+The frontend automatically proxies `/api` requests to the backend running on port `3001`.
 
-The frontend build generates static files in `apps/web/dist/`.
+## Scoring
 
-Production deployments serve these files using Nginx.
+The scoring engine is located in `packages/rules/src/score.ts` and currently supports the following BIOGLOW missions:
 
----
-
-## Scoring System
-
-Mission Control currently implements scoring for the **FLL Future Edition BIOGLOW** challenge.
-
-The scoring engine is located at:
-
-```text
-packages/rules/src/score.ts
-```
-
-### Supported Missions
-
-| Mission | Description |
+| Mission | Name |
 |---|---|
 | M01 | Mighty Microbiomes |
 | M02 | Roots of Renewal |
@@ -251,188 +113,67 @@ packages/rules/src/score.ts
 | M04 | Rainforest Awakening |
 | M05 | Central Haven |
 | Level Up | Invasive Attack |
-| Interference | Rule violation penalties |
-| GP | Gracious Professionalism |
 
-### Shared Mission Scoring
+### Interference Penalties
 
-M05 is shared between the teams competing in the same match.
+Penalties are applied automatically:
 
-The referee enters the shared mission result once.
-
-Each eligible team receives the corresponding points.
-
-A team that does not participate or is nullified receives zero points, including its M05 points.
-
-### Interference
-
-Mission Control implements the following interference rules:
-
-| Violations | Result |
+| Violations | Penalty |
 |---|---|
 | 0 | No penalty |
 | 1 | −10 points |
 | 2 | −30 points total |
 | 3 | Entire match score becomes 0 |
 
-Nullification occurs automatically when the third violation is recorded.
+### Shared Missions and No-Shows
 
-The referee does not manually select a nullified participation status.
+M05 is shared between both teams, with points awarded to each eligible team.
 
-### No-Shows
+No-shows and nullified teams receive zero points. No-shows can be recorded using the participation picker at the top of the scoring interface.
 
-A team marked as a no-show receives a final score of zero.
+### Score Submission
 
-The other team can continue scoring normally.
-
-### Atomic Submission
-
-A match is submitted using:
-
-```http
-POST /api/v1/matches/:id/submit
-```
-
-Both teams' scoresheets are saved within one SQLite transaction.
-
-If any part of the transaction fails, the submission is rolled back.
-
-This prevents incomplete match results from being committed.
+Both teams' scoresheets are submitted in a single database transaction. If anything fails, the transaction is rolled back to prevent incomplete results.
 
 Solo matches submit one scoresheet.
 
----
+Rankings currently use average recorded scores, following the FLL Future Edition ranking system. Support for alternative ranking systems is planned for other competitions.
 
 ## API
 
-The Hono backend exposes REST endpoints under `/api/v1`.
+The backend exposes REST endpoints under `/api/v1`.
 
-### Public Read Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/v1/teams` | List teams |
-| GET | `/api/v1/teams/:id` | Get a team |
-| GET | `/api/v1/matches` | List matches |
-| GET | `/api/v1/scoresheets` | List submitted scoresheets |
-| GET | `/api/v1/scoresheets/:id` | Get a scoresheet |
-| GET | `/api/v1/rankings` | Get team rankings |
-
-### Authentication
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/v1/auth/login` | Authenticate a referee |
-
-### Scoring
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/v1/matches/:id/submit` | Submit match scores |
-
-Match submission requires a valid referee session token.
-
-### Example
-
-Retrieve all matches:
-
-```bash
-curl http://localhost:3001/api/v1/matches
-```
-
-Retrieve rankings:
-
-```bash
-curl http://localhost:3001/api/v1/rankings
-```
-
-Additional administrator endpoints exist but are not yet part of a complete production administration workflow.
-
----
-
-## Docker Deployment
-
-Mission Control provides separate Docker images for its frontend and backend.
-
-### Images
-
-| Component | Image |
+| Method | Endpoint |
 |---|---|
-| Backend | `ghcr.io/chrxmium/mission-control-api:latest` |
-| Frontend | `ghcr.io/chrxmium/mission-control-web:latest` |
+| GET | `/teams` |
+| GET | `/teams/:id` |
+| GET | `/matches` |
+| GET | `/scoresheets` |
+| GET | `/scoresheets/:id` |
+| GET | `/rankings` |
+| POST | `/auth/login` |
+| POST | `/matches/:id/submit` |
 
-Docker images are published through GitHub Actions.
+Match submission requires a valid referee session.
 
-### Architecture
+## Docker / TrueNAS SCALE
 
-```text
-                  HTTPS
-                    │
-                    ▼
-             Cloudflare Tunnel
-                    │
-                    ▼
-               Nginx :80
-                /       \
-               /         \
-              ▼           ▼
-         React App      /api/*
-                           │
-                           ▼
-                      Hono :3001
-                           │
-                           ▼
-                         SQLite
-                           │
-                           ▼
-                  Persistent Storage
-```
+Docker images are published to GitHub Container Registry:
 
-### Environment Variables
+- `ghcr.io/chrxmium/mission-control-api:latest`
+- `ghcr.io/chrxmium/mission-control-web:latest`
 
-| Variable | Description |
-|---|---|
-| `NODE_ENV` | Runtime environment |
-| `PORT` | Backend listening port |
-| `DATABASE_URL` | SQLite database path |
-| `ADMIN_TOKEN` | Administrator API credential |
-| `REFEREE_PASSWORD` | Referee login password |
+### TrueNAS SCALE Installation
 
-The production SQLite path is:
+Go to **Apps → Discover Apps → Install via YAML**.
 
-```text
-/data/mission-control.db
-```
-
----
-
-## TrueNAS SCALE Deployment
-
-Mission Control can run as a TrueNAS COM custom application.
-
-(note: i use truenas so that's why this is here. \
-reminder, you don't need a .env if you deploy with install via yaml)
-
-### Installation
-
-Open:
-
-**TrueNAS → Apps → Discover Apps → Install via YAML**
-
-Set the application name to:
-
-```text
-mission-control
-```
-
-Use the following example configuration:
+Set the application name to `mission-control` and use the following configuration:
 
 ```yaml
 services:
   mission-control-api:
     image: ghcr.io/chrxmium/mission-control-api:latest
     restart: unless-stopped
-
     user: "568:568"
 
     environment:
@@ -475,21 +216,11 @@ networks:
     driver: bridge
 ```
 
-Replace the placeholder credentials before deployment.
-
-The backend container is restricted to the internal Docker network.
-
-Only the Nginx frontend is exposed through the TrueNAS host.
+Replace the placeholder credentials before deploying.
 
 ### Persistent Storage
 
-The example configuration stores SQLite data at:
-
-```text
-/mnt/tb/mission-control/data
-```
-
-Create the directory:
+Create the data directory on your TrueNAS host:
 
 ```bash
 sudo mkdir -p /mnt/tb/mission-control/data
@@ -497,37 +228,19 @@ sudo chown 568:568 /mnt/tb/mission-control/data
 sudo chmod 750 /mnt/tb/mission-control/data
 ```
 
-The example container runs as UID/GID `568:568`.
+The example uses UID/GID `568:568`. (as per the normal UID for TrueNAS apps.) If you change the container user or storage location, adjust the permissions accordingly. 
 
-If you change the container user, adjust the dataset permissions accordingly.
+**Important:** Make sure the database schema has been initialised using the project's migrations before starting the application. An empty directory alone is not enough.
 
-SQLite requires permission to create and modify its database, journal, and WAL files.
+Once deployed, access Mission Control at:
 
-**Note:** An empty data directory does not automatically guarantee the database schema exists. Initialise the database using the project's migrations or restore an existing compatible database before starting the application.
+`http://TRUENAS_IP:8088`
 
-### Accessing the Application
+### Cloudflare Tunnel
 
-For the example configuration:
+Mission Control can also be accessed through an existing Cloudflare Tunnel.
 
-```text
-http://TRUENAS_IP:8088
-```
-
-The backend is accessible to the frontend through the internal Docker network.
-
----
-
-## Cloudflare Tunnel
-
-Mission Control supports deployment behind Cloudflare Tunnel.
-
-An existing `cloudflared` installation can be reused.
-
-No additional tunnel container is required.
-
-### Example Configuration
-
-Create a published application route in Cloudflare Zero Trust.
+Create a published application route in Cloudflare Zero Trust:
 
 | Setting | Value |
 |---|---|
@@ -535,164 +248,75 @@ Create a published application route in Cloudflare Zero Trust.
 | Service type | HTTP |
 | Origin address | `TRUENAS_IP:8088` |
 
-Cloudflare handles the public HTTPS connection.
+No port forwarding is required.
 
-Nginx serves the frontend and forwards `/api` requests to the backend.
+*(yes, there's a TrueNAS section because that's what I use. reminder: you don't need a separate `.env` when deploying through YAML.)*
 
-### Security
+## Security
 
-For initial deployments, using Cloudflare Access to restrict access to approved testers is recommended.
+> [!CAUTION]
+> **DO NOT TRUST MISSION CONTROL WITH PERSONALLY IDENTIFIABLE INFORMATION (PII).**
+>
+> Mission Control is an MVP and has not undergone a comprehensive security audit. It is not currently suitable for storing or processing sensitive personal information.
+>
+> **Do not use Mission Control to store PII or other sensitive event data.** Follow FIRST's data privacy requirements and your responsibilities as an event volunteer.
+>
+> This software is provided as-is, without any guarantee of security or fitness for production use. Deployment and operation are the responsibility of the person or organisation running it, subject to applicable law.
 
-Publicly accessible competition dashboards and private referee functionality may use different access policies in future versions.
+**Current authentication limitations:**
 
----
+Referee sessions are stored in server memory and expire after 12 hours. Restarting the backend clears all active sessions.
 
-## Database Backups
+Logging out currently removes the locally stored token, but does not revoke the session server-side.
 
-SQLite stores teams, matches, scoresheets, and other application data in a single database file.
-
-Regular backups are recommended, particularly during active competitions.
-
-### Creating a Backup
-
-Using the SQLite CLI:
-
-```bash
-sqlite3 mission-control.db \
-  ".backup 'mission-control-backup.db'"
-```
-
-The SQLite backup command creates a consistent database snapshot.
-
-### Exporting SQL
-
-To export the database schema and contents:
-
-```bash
-sqlite3 mission-control.db ".dump" > mission-control.sql
-```
-
-SQL dumps can be imported into a new SQLite database.
-
-Avoid replacing the database while the backend is running.
-
-The persistent storage volume should be backed up independently of the Docker images.
-
----
-
-## GitHub Actions
-
-Mission Control uses GitHub Actions to build and publish Docker images.
-
-The workflow is located at:
-
-```text
-.github/workflows/docker-publish.yml
-```
-
-When changes are pushed to `main`, the workflow builds:
-
-- `mission-control-api`
-- `mission-control-web`
-
-Images are published to GitHub Container Registry.
-
-The deployment can then be updated by pulling the latest images and restarting the containers.
-
-Database contents remain in persistent storage.
-
----
-
-## Security Considerations
-
-Mission Control is currently intended for controlled competition environments.
-
-(note: DO NOT TRUST MISSION CONTROL WITH ANY PII. MISSION CONTROL IS NOT SECURE ENOUGH TO CARRY PII. \
-DOING SO WILL BE VIOLATION OF YOUR ROLE AS A VOLUNTEER, AS STATED IN YOUR FIRST DATA PRIVACY FOR EVENT VOLUNTEER TRAINING. i'm watching..)
-
-Before exposing a production instance publicly, review the following:
-
-- Use strong, unique administrator and referee credentials.
-- Keep secrets out of Git and Docker images.
-- Use HTTPS through Cloudflare Tunnel or another reverse proxy.
-- Restrict access to administrative functionality.
-- Apply rate limiting to authentication endpoints.
-- Protect session tokens.
-- Keep Docker images and dependencies updated.
-- Back up SQLite regularly.
-- Use a dedicated, least-privileged container user.
-
-The current referee session implementation stores sessions in server memory.
-
-Sessions expire after 12 hours and are lost when the backend restarts.
-
-Logging out of the frontend currently clears the browser's stored token; server-side token revocation is not yet implemented.
-
----
+Authentication hardening, rate limiting, and improved session management are planned.
 
 ## Roadmap
 
-Mission Control is being developed incrementally.
+### Working
 
-### Current MVP
+- [x] Two-team and solo scoring
+- [x] Live scoring and shared missions
+- [x] Interference penalties and no-shows
+- [x] Atomic match submissions
+- [x] Rankings and scoresheet history
+- [x] Referee authentication
+- [x] Docker and TrueNAS deployment
+- [x] Cloudflare Tunnel support
 
-- [x] Two-team match scoring
-- [x] Solo/remote match scoring
-- [x] Shared M05 scoring
-- [x] Live score calculation
-- [x] Automatic interference nullification
-- [x] Atomic match submission
-- [x] SQLite persistence
-- [x] Submitted scoresheet viewing
-- [x] Basic rankings
-- [x] Referee password authentication
-- [x] Docker deployment configuration
-- [x] TrueNAS SCALE deployment support
-- [x] Cloudflare Tunnel compatibility
+### Planned
 
-### Planned Improvements
-
-- [ ] Full referee and administrator role management
+- [ ] Administrator and referee roles
 - [ ] Head Referee score overrides
-- [ ] Referee assignment and match locking
-- [ ] QR-based referee authentication
-- [ ] Improved authentication security and rate limiting
-- [ ] Event creation and configuration
-- [ ] Multiple competitions and seasons
-- [ ] Automated match scheduling
-- [ ] Practice and qualification match separation
-- [ ] Advanced ranking rules
-- [ ] Brackets and alliance challenges
-- [ ] Audit logs
-- [ ] Improved score editing
-- [ ] Database migration and deployment improvements
+- [ ] Referee assignments and match locking
+- [ ] QR-based authentication
+- [ ] Event creation and automated scheduling
+- [ ] Multiple seasons and competitions
+- [ ] Qualification and practice match separation
+- [ ] Advanced rankings and brackets
+- [ ] Audit logs and score editing
+- [ ] Authentication and database migration improvements
 
----
+## AI Usage
+
+AI was used throughout development for frontend assistance, planning, debugging, code examples, and learning.
+
+AI did not independently access, modify, or manage the repository. All code was reviewed, integrated, and tested manually, with project decisions and development remaining under human control.
 
 ## Contributing
 
-Contributions, suggestions, bug reports, and feature requests are welcome.
+Issues, suggestions, and pull requests are welcome!
 
-To contribute:
+To contribute, fork the repository, create a branch, make your changes, test them, and open a pull request.
 
-1. Fork the repository.
-2. Create a feature branch.
-3. Make your changes.
-4. Test the affected components.
-5. Submit a pull request.
+Please include appropriate tests for changes affecting the scoring engine.
 
-Changes to scoring calculations should include appropriate tests.
-
-Please avoid introducing breaking changes to the scoring engine without documenting the affected competition rules.
-
----
+Bug reports and feature requests can be submitted through [GitHub Issues](https://github.com/chrxmium/mission-control/issues).
 
 ## Disclaimer
 
-Mission Control is an independent project.
+Mission Control is an independent, community-developed project and is not affiliated with, endorsed by, or maintained by FIRST.
 
-It is not officially affiliated with, endorsed by, or maintained by FIRST.
+FIRST, FIRST LEGO® League, and related competition names and trademarks belong to their respective owners.
 
-FIRST, FIRST LEGO League, and associated competition names and trademarks belong to their respective owners.
-
-Official competition rules and scoring requirements should be verified against the relevant season's documentation before using the platform at an event.
+Always verify scoring requirements against the official season documentation before using Mission Control at an event.
