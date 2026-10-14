@@ -22,10 +22,21 @@ pnpm-debug.log*
 
 # SQLite
 *.db
-*.db-shm
-*.db-wal
+*.db-*
 *.sqlite
 *.sqlite3
+*.sqlite-*
+*.sqlite3-*
+*.sql.bak
+*.sql.backup
+*.db.backup
+*.db.old
+
+# Runtime data and backups
+/backups/
+/data/
+/.local-backups/
+/mission-control.sql
 
 # Local application data
 data/
