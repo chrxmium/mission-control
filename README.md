@@ -25,14 +25,14 @@ The frontend and backend share the same TypeScript scoring rules to keep calcula
 
 ## Tech Stack
 
-| Component | Technology |
-|---|---|
-| Frontend | React, TypeScript, Material UI, Vite |
-| Backend | Node.js, Hono |
-| Database | SQLite, Drizzle ORM |
-| Deployment | Docker, Nginx, GHCR |
-| CI/CD | GitHub Actions |
-| Remote access | Cloudflare Tunnel |
+| Component     | Technology                           |
+| ------------- | ------------------------------------ |
+| Frontend      | React, TypeScript, Material UI, Vite |
+| Backend       | Node.js, Hono                        |
+| Database      | SQLite, Drizzle ORM                  |
+| Deployment    | Docker, Nginx, GHCR                  |
+| CI/CD         | GitHub Actions                       |
+| Remote access | Cloudflare Tunnel                    |
 
 ## Getting Started
 
@@ -72,7 +72,7 @@ Generate a secure administrator token using:
 openssl rand -hex 32
 ```
 
-Or use your own securely generated token. Just make sure it's strong and don't commit it to GitHub! 
+Or use your own securely generated token. Just make sure it's strong and don't commit it to GitHub!
 
 ### 4. Initialise the Database
 
@@ -105,25 +105,25 @@ The frontend automatically proxies `/api` requests to the backend running on por
 
 The scoring engine is located in `packages/rules/src/score.ts` and currently supports the following BIOGLOW missions:
 
-| Mission | Name |
-|---|---|
-| M01 | Mighty Microbiomes |
-| M02 | Roots of Renewal |
-| M03 | Cave Waterfall |
-| M04 | Rainforest Awakening |
-| M05 | Central Haven |
-| Level Up | Invasive Attack |
+| Mission  | Name                 |
+| -------- | -------------------- |
+| M01      | Mighty Microbiomes   |
+| M02      | Roots of Renewal     |
+| M03      | Cave Waterfall       |
+| M04      | Rainforest Awakening |
+| M05      | Central Haven        |
+| Level Up | Invasive Attack      |
 
 ### Interference Penalties
 
 Penalties are applied automatically:
 
-| Violations | Penalty |
-|---|---|
-| 0 | No penalty |
-| 1 | −10 points |
-| 2 | −30 points total |
-| 3 | Entire match score becomes 0 |
+| Violations | Penalty                      |
+| ---------- | ---------------------------- |
+| 0          | No penalty                   |
+| 1          | −10 points                   |
+| 2          | −30 points total             |
+| 3          | Entire match score becomes 0 |
 
 ### Shared Missions and No-Shows
 
@@ -143,16 +143,16 @@ Rankings currently use average recorded scores, following the FLL Future Edition
 
 The backend exposes REST endpoints under `/api/v1`.
 
-| Method | Endpoint |
-|---|---|
-| GET | `/teams` |
-| GET | `/teams/:id` |
-| GET | `/matches` |
-| GET | `/scoresheets` |
-| GET | `/scoresheets/:id` |
-| GET | `/rankings` |
-| POST | `/auth/login` |
-| POST | `/matches/:id/submit` |
+| Method | Endpoint              |
+| ------ | --------------------- |
+| GET    | `/teams`              |
+| GET    | `/teams/:id`          |
+| GET    | `/matches`            |
+| GET    | `/scoresheets`        |
+| GET    | `/scoresheets/:id`    |
+| GET    | `/rankings`           |
+| POST   | `/auth/login`         |
+| POST   | `/matches/:id/submit` |
 
 Match submission requires a valid referee session.
 
@@ -171,49 +171,49 @@ Set the application name to `mission-control` and use the following configuratio
 
 ```yaml
 services:
-  mission-control-api:
-    image: ghcr.io/chrxmium/mission-control-api:latest
-    restart: unless-stopped
-    user: "568:568"
+    mission-control-api:
+        image: ghcr.io/chrxmium/mission-control-api:latest
+        restart: unless-stopped
+        user: "568:568"
 
-    environment:
-      NODE_ENV: production
-      PORT: "3001"
-      DATABASE_URL: /data/mission-control.db
-      ADMIN_TOKEN: "REPLACE_WITH_ADMIN_TOKEN"
-      REFEREE_PASSWORD: "REPLACE_WITH_REFEREE_PASSWORD"
+        environment:
+            NODE_ENV: production
+            PORT: "3001"
+            DATABASE_URL: /data/mission-control.db
+            ADMIN_TOKEN: "REPLACE_WITH_ADMIN_TOKEN"
+            REFEREE_PASSWORD: "REPLACE_WITH_REFEREE_PASSWORD"
 
-    volumes:
-      - /mnt/tb/mission-control/data:/data
+        volumes:
+            - /mnt/tb/mission-control/data:/data
 
-    expose:
-      - "3001"
+        expose:
+            - "3001"
 
-    networks:
-      - mission-control-net
+        networks:
+            - mission-control-net
 
-    security_opt:
-      - no-new-privileges:true
+        security_opt:
+            - no-new-privileges:true
 
-  mission-control-web:
-    image: ghcr.io/chrxmium/mission-control-web:latest
-    restart: unless-stopped
+    mission-control-web:
+        image: ghcr.io/chrxmium/mission-control-web:latest
+        restart: unless-stopped
 
-    depends_on:
-      - mission-control-api
+        depends_on:
+            - mission-control-api
 
-    ports:
-      - "8088:80"
+        ports:
+            - "8088:80"
 
-    networks:
-      - mission-control-net
+        networks:
+            - mission-control-net
 
-    security_opt:
-      - no-new-privileges:true
+        security_opt:
+            - no-new-privileges:true
 
 networks:
-  mission-control-net:
-    driver: bridge
+    mission-control-net:
+        driver: bridge
 ```
 
 Replace the placeholder credentials before deploying.
@@ -228,7 +228,7 @@ sudo chown 568:568 /mnt/tb/mission-control/data
 sudo chmod 750 /mnt/tb/mission-control/data
 ```
 
-The example uses UID/GID `568:568`. (as per the normal UID for TrueNAS apps.) If you change the container user or storage location, adjust the permissions accordingly. 
+The example uses UID/GID `568:568`. (as per the normal UID for TrueNAS apps.) If you change the container user or storage location, adjust the permissions accordingly.
 
 **Important:** Make sure the database schema has been initialised using the project's migrations before starting the application. An empty directory alone is not enough.
 
@@ -242,15 +242,15 @@ Mission Control can also be accessed through an existing Cloudflare Tunnel.
 
 Create a published application route in Cloudflare Zero Trust:
 
-| Setting | Value |
-|---|---|
+| Setting         | Value                 |
+| --------------- | --------------------- |
 | Public hostname | `scoring.example.com` |
-| Service type | HTTP |
-| Origin address | `TRUENAS_IP:8088` |
+| Service type    | HTTP                  |
+| Origin address  | `TRUENAS_IP:8088`     |
 
 No port forwarding is required.
 
-*(yes, there's a TrueNAS section because that's what I use. reminder: you don't need a separate `.env` when deploying through YAML.)*
+_(yes, there's a TrueNAS section because that's what I use. reminder: you don't need a separate `.env` when deploying through YAML.)_
 
 ## Security
 

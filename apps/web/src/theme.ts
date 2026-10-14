@@ -46,9 +46,7 @@ export function createAppTheme(mode: ResolvedThemeMode) {
             MuiCssBaseline: {
                 styleOverrides: {
                     body: {
-                        backgroundColor: light
-                            ? "#f3f1f5"
-                            : "#18181f",
+                        backgroundColor: light ? "#f3f1f5" : "#18181f",
                     },
                 },
             },
@@ -77,24 +75,16 @@ export function createAppTheme(mode: ResolvedThemeMode) {
                 styleOverrides: {
                     root: {
                         textTransform: "none",
-                        borderColor: light
-                            ? "#d8d4dd"
-                            : "#45434e",
+                        borderColor: light ? "#d8d4dd" : "#45434e",
 
                         "&.Mui-selected": {
-                            backgroundColor: light
-                                ? "#e5e5f8"
-                                : "#393957",
+                            backgroundColor: light ? "#e5e5f8" : "#393957",
 
-                            color: light
-                                ? "#42449b"
-                                : "#dedfff",
+                            color: light ? "#42449b" : "#dedfff",
                         },
 
                         "&.Mui-selected:hover": {
-                            backgroundColor: light
-                                ? "#dcdcf4"
-                                : "#444467",
+                            backgroundColor: light ? "#dcdcf4" : "#444467",
                         },
                     },
                 },

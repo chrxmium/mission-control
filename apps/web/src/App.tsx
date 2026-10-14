@@ -1,8 +1,4 @@
-import {
-    Navigate,
-    Route,
-    Routes,
-} from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import AppShell from "./components/AppShell";
 
@@ -20,59 +16,27 @@ type AppProps = {
     onThemeModeChange: (mode: ThemeMode) => void;
 };
 
-export default function App({
-                                themeMode,
-                                onThemeModeChange,
-                            }: AppProps) {
+export default function App({ themeMode, onThemeModeChange }: AppProps) {
     return (
         <Routes>
             <Route
-                element={
-                    <AppShell
-                        themeMode={themeMode}
-                        onThemeModeChange={onThemeModeChange}
-                    />
-                }
+                element={<AppShell themeMode={themeMode} onThemeModeChange={onThemeModeChange} />}
             >
-                <Route
-                    path="/"
-                    element={<Navigate to="/matches" replace />}
-                />
+                <Route path="/" element={<Navigate to="/matches" replace />} />
 
-                <Route
-                    path="/matches"
-                    element={<MatchesPage />}
-                />
+                <Route path="/matches" element={<MatchesPage />} />
 
-                <Route
-                    path="/match/:id"
-                    element={<MatchPage />}
-                />
+                <Route path="/match/:id" element={<MatchPage />} />
 
-                <Route
-                    path="/rankings"
-                    element={<RankingsPage />}
-                />
+                <Route path="/rankings" element={<RankingsPage />} />
 
-                <Route
-                    path="/scoresheet/:id"
-                    element={<ScoresheetPage />}
-                />
+                <Route path="/scoresheet/:id" element={<ScoresheetPage />} />
 
-                <Route
-                    path="/unlock"
-                    element={<UnlockPage />}
-                />
+                <Route path="/unlock" element={<UnlockPage />} />
 
-                <Route
-                    path="/admin"
-                    element={<AdminPage />}
-                />
+                <Route path="/admin" element={<AdminPage />} />
 
-                <Route
-                    path="*"
-                    element={<Navigate to="/matches" replace />}
-                />
+                <Route path="*" element={<Navigate to="/matches" replace />} />
             </Route>
         </Routes>
     );

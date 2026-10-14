@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-    Link,
-    Outlet,
-    useLocation,
-    useNavigate,
-} from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import {
     AppBar,
@@ -49,15 +44,11 @@ const links = [
     },
 ];
 
-export default function AppShell({
-                                     themeMode,
-                                     onThemeModeChange,
-                                 }: AppShellProps) {
+export default function AppShell({ themeMode, onThemeModeChange }: AppShellProps) {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [menuAnchor, setMenuAnchor] =
-        useState<HTMLElement | null>(null);
+    const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
 
     const menuOpen = Boolean(menuAnchor);
 
@@ -84,9 +75,7 @@ export default function AppShell({
     };
 
     const toggleTheme = () => {
-        onThemeModeChange(
-            themeMode === "dark" ? "light" : "dark",
-        );
+        onThemeModeChange(themeMode === "dark" ? "light" : "dark");
     };
 
     return (
@@ -142,16 +131,8 @@ export default function AppShell({
                                     key={link.path}
                                     component={Link}
                                     to={link.path}
-                                    color={
-                                        isActive(link.path)
-                                            ? "primary"
-                                            : "inherit"
-                                    }
-                                    variant={
-                                        isActive(link.path)
-                                            ? "outlined"
-                                            : "text"
-                                    }
+                                    color={isActive(link.path) ? "primary" : "inherit"}
+                                    variant={isActive(link.path) ? "outlined" : "text"}
                                     sx={{
                                         fontWeight: 700,
                                         textTransform: "none",
@@ -189,19 +170,13 @@ export default function AppShell({
                             </Button>
 
                             <Tooltip title="Lock referee session">
-                                <IconButton
-                                    aria-label="Lock referee session"
-                                    onClick={lockReferee}
-                                >
+                                <IconButton aria-label="Lock referee session" onClick={lockReferee}>
                                     <LogoutOutlinedIcon />
                                 </IconButton>
                             </Tooltip>
 
                             <Tooltip title="Toggle theme">
-                                <IconButton
-                                    aria-label="Toggle theme"
-                                    onClick={toggleTheme}
-                                >
+                                <IconButton aria-label="Toggle theme" onClick={toggleTheme}>
                                     {themeMode === "dark" ? (
                                         <LightModeOutlinedIcon />
                                     ) : (
@@ -222,10 +197,7 @@ export default function AppShell({
                                 alignItems: "center",
                             }}
                         >
-                            <IconButton
-                                aria-label="Toggle theme"
-                                onClick={toggleTheme}
-                            >
+                            <IconButton aria-label="Toggle theme" onClick={toggleTheme}>
                                 {themeMode === "dark" ? (
                                     <LightModeOutlinedIcon />
                                 ) : (
@@ -235,16 +207,10 @@ export default function AppShell({
 
                             <IconButton
                                 aria-label="Open navigation"
-                                aria-controls={
-                                    menuOpen
-                                        ? "navigation-menu"
-                                        : undefined
-                                }
+                                aria-controls={menuOpen ? "navigation-menu" : undefined}
                                 aria-haspopup="true"
                                 aria-expanded={menuOpen}
-                                onClick={(event) =>
-                                    setMenuAnchor(event.currentTarget)
-                                }
+                                onClick={(event) => setMenuAnchor(event.currentTarget)}
                             >
                                 <MenuIcon />
                             </IconButton>
@@ -265,9 +231,7 @@ export default function AppShell({
                                 <MenuItem
                                     key={link.path}
                                     selected={isActive(link.path)}
-                                    onClick={() =>
-                                        navigateTo(link.path)
-                                    }
+                                    onClick={() => navigateTo(link.path)}
                                 >
                                     {link.label}
                                 </MenuItem>
@@ -275,17 +239,11 @@ export default function AppShell({
 
                             <Divider />
 
-                            <MenuItem
-                                onClick={() =>
-                                    navigateTo("/unlock")
-                                }
-                            >
+                            <MenuItem onClick={() => navigateTo("/unlock")}>
                                 Referee Unlock
                             </MenuItem>
 
-                            <MenuItem onClick={lockReferee}>
-                                Lock Referee Session
-                            </MenuItem>
+                            <MenuItem onClick={lockReferee}>Lock Referee Session</MenuItem>
                         </Menu>
                     </Toolbar>
                 </Container>

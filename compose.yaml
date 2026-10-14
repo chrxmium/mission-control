@@ -1,37 +1,37 @@
 services:
-  api:
-    build:
-      context: .
-      dockerfile: apps/server/Dockerfile
-    restart: unless-stopped
+    api:
+        build:
+            context: .
+            dockerfile: apps/server/Dockerfile
+        restart: unless-stopped
 
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: /data/mission-control.db
-      ADMIN_TOKEN: ${ADMIN_TOKEN}
-      REFEREE_PASSWORD: ${REFEREE_PASSWORD}
+        environment:
+            NODE_ENV: production
+            DATABASE_URL: /data/mission-control.db
+            ADMIN_TOKEN: ${ADMIN_TOKEN}
+            REFEREE_PASSWORD: ${REFEREE_PASSWORD}
 
-    volumes:
-      - ${DATA_DIR}:/data
+        volumes:
+            - ${DATA_DIR}:/data
 
-    networks:
-      - internal
+        networks:
+            - internal
 
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-    restart: unless-stopped
+    web:
+        build:
+            context: .
+            dockerfile: apps/web/Dockerfile
+        restart: unless-stopped
 
-    depends_on:
-      - api
+        depends_on:
+            - api
 
-    ports:
-      - "8088:80"
+        ports:
+            - "8088:80"
 
-    networks:
-      - internal
+        networks:
+            - internal
 
 networks:
-  internal:
-    driver: bridge
+    internal:
+        driver: bridge

@@ -30,9 +30,7 @@ export default function ScorePage() {
     const [searchParams] = useSearchParams();
 
     const teamId = Number(searchParams.get("teamId"));
-    const matchNumber = Number(
-        searchParams.get("matchNumber"),
-    );
+    const matchNumber = Number(searchParams.get("matchNumber"));
 
     const [tableNumber, setTableNumber] = useState(1);
 
@@ -44,10 +42,7 @@ export default function ScorePage() {
     const [m01YoungForest, setM01YoungForest] = useState(0);
     const [m01GrandTree, setM01GrandTree] = useState(0);
     const [m01HollowTree, setM01HollowTree] = useState(0);
-    const [
-        m01QueenKnockedDown,
-        setM01QueenKnockedDown,
-    ] = useState(false);
+    const [m01QueenKnockedDown, setM01QueenKnockedDown] = useState(false);
 
     const [m02Base, setM02Base] = useState(0);
     const [m02Canopy, setM02Canopy] = useState(0);
@@ -66,10 +61,7 @@ export default function ScorePage() {
     const [gp, setGp] = useState<2 | 3 | 4>(3);
 
     const hasMatchContext =
-        Number.isInteger(teamId) &&
-        teamId > 0 &&
-        Number.isInteger(matchNumber) &&
-        matchNumber > 0;
+        Number.isInteger(teamId) && teamId > 0 && Number.isInteger(matchNumber) && matchNumber > 0;
 
     useEffect(() => {
         if (!Number.isInteger(teamId) || teamId <= 0) {
@@ -78,17 +70,14 @@ export default function ScorePage() {
 
         const loadTeam = async () => {
             try {
-                const response = await fetch(
-                    `/api/v1/teams/${teamId}`,
-                );
+                const response = await fetch(`/api/v1/teams/${teamId}`);
 
                 if (!response.ok) {
                     setTeam(null);
                     return;
                 }
 
-                const data: { team: Team } =
-                    await response.json();
+                const data: { team: Team } = await response.json();
 
                 setTeam(data.team);
             } catch (error) {
@@ -127,9 +116,7 @@ export default function ScorePage() {
 
     const submitScore = async () => {
         if (!hasMatchContext) {
-            setSubmitError(
-                "This scoresheet is missing its team or match.",
-            );
+            setSubmitError("This scoresheet is missing its team or match.");
 
             return;
         }
@@ -138,41 +125,33 @@ export default function ScorePage() {
         setSubmitError("");
 
         try {
-            const response = await fetch(
-                "/api/v1/scoresheets",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: "Bearer change-me-later",
-                    },
-                    body: JSON.stringify({
-                        teamId,
-                        matchNumber,
-                        tableNumber,
-                        ...currentSheet,
-                    }),
+            const response = await fetch("/api/v1/scoresheets", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer change-me-later",
                 },
-            );
+                body: JSON.stringify({
+                    teamId,
+                    matchNumber,
+                    tableNumber,
+                    ...currentSheet,
+                }),
+            });
 
             const data = await response.json();
 
             if (!response.ok) {
-                setSubmitError(
-                    data.error ?? "Failed to submit score.",
-                );
+                setSubmitError(data.error ?? "Failed to submit score.");
 
                 return;
             }
 
-            window.location.hash =
-                `/scoresheet/${data.scoresheet.id}`;
+            window.location.hash = `/scoresheet/${data.scoresheet.id}`;
         } catch (error) {
             console.error(error);
 
-            setSubmitError(
-                "Failed to connect to the server.",
-            );
+            setSubmitError("Failed to connect to the server.");
         } finally {
             setSubmitting(false);
         }
@@ -187,27 +166,20 @@ export default function ScorePage() {
                 }}
             >
                 <Box sx={{ mb: 2 }}>
-                    <Typography
-                        variant="h4"
-                        sx={{ fontWeight: 800 }}
-                    >
+                    <Typography variant="h4" sx={{ fontWeight: 800 }}>
                         Score Match
                     </Typography>
 
                     <Typography color="text.secondary" sx={{ mb: 2 }}>
                         Match {matchNumber}
-                        {team
-                            ? ` · Team ${team.number} · ${team.name}`
-                            : ` · Team ${teamId}`}
+                        {team ? ` · Team ${team.number} · ${team.name}` : ` · Team ${teamId}`}
                     </Typography>
 
                     <TextField
                         select
                         label="Table"
                         value={tableNumber}
-                        onChange={(event) =>
-                            setTableNumber(Number(event.target.value))
-                        }
+                        onChange={(event) => setTableNumber(Number(event.target.value))}
                         sx={{
                             minWidth: 140,
                         }}
@@ -254,9 +226,7 @@ export default function ScorePage() {
                         />
                     </MissionCard>
 
-                    <MissionCard
-                        title="M02 - ROOTS OF RENEWAL"
-                    >
+                    <MissionCard title="M02 - ROOTS OF RENEWAL">
                         <Stepper
                             label="Resources in the Grand Tree base:"
                             description="5 points each"
@@ -273,9 +243,7 @@ export default function ScorePage() {
                         />
                     </MissionCard>
 
-                    <MissionCard
-                        title="M03 - CAVE WATERFALL"
-                    >
+                    <MissionCard title="M03 - CAVE WATERFALL">
                         <Stepper
                             label="Keystone species cycled through the waterfall:"
                             description="5 points each · Maximum 10 (50)"
@@ -285,9 +253,7 @@ export default function ScorePage() {
                         />
                     </MissionCard>
 
-                    <MissionCard
-                        title="M04 - RAINFOREST AWAKENING"
-                    >
+                    <MissionCard title="M04 - RAINFOREST AWAKENING">
                         <YesNo
                             label="All (3) keystone species are released from the nest:"
                             description="30 points"
@@ -315,9 +281,7 @@ export default function ScorePage() {
                         />
                     </MissionCard>
 
-                    <MissionCard
-                        title="LEVEL UP CHALLENGE - INVASIVE ATTACK"
-                    >
+                    <MissionCard title="LEVEL UP CHALLENGE - INVASIVE ATTACK">
                         <NumberChoices
                             label="Invasive species added before the match:"
                             description="20 points each · Maximum 5 (100)"
@@ -334,9 +298,7 @@ export default function ScorePage() {
                         />
                     </MissionCard>
 
-                    <MissionCard
-                        title="INTERFERENCE"
-                    >
+                    <MissionCard title="INTERFERENCE">
                         <NumberChoices
                             label="Interferences:"
                             description="1st: −10 · 2nd: −30 total · 3rd: nullified"
@@ -378,8 +340,7 @@ export default function ScorePage() {
                                     color="text.secondary"
                                     sx={{ mt: 0.25 }}
                                 >
-                                    Developing (2) · Accomplished (3) ·
-                                    Exceeds (4)
+                                    Developing (2) · Accomplished (3) · Exceeds (4)
                                 </Typography>
                             </Box>
 
@@ -392,17 +353,11 @@ export default function ScorePage() {
                                     }
                                 }}
                             >
-                                <ToggleButton value={2}>
-                                    Developing
-                                </ToggleButton>
+                                <ToggleButton value={2}>Developing</ToggleButton>
 
-                                <ToggleButton value={3}>
-                                    Accomplished
-                                </ToggleButton>
+                                <ToggleButton value={3}>Accomplished</ToggleButton>
 
-                                <ToggleButton value={4}>
-                                    Exceeds
-                                </ToggleButton>
+                                <ToggleButton value={4}>Exceeds</ToggleButton>
                             </ToggleButtonGroup>
                         </Stack>
                     </MissionCard>
@@ -444,19 +399,12 @@ export default function ScorePage() {
                                 CURRENT SCORE
                             </Typography>
 
-                            <Typography
-                                variant="h5"
-                                sx={{ fontWeight: 800 }}
-                            >
+                            <Typography variant="h5" sx={{ fontWeight: 800 }}>
                                 {currentScore}
                             </Typography>
                         </Box>
 
-                        {submitError && (
-                            <Alert severity="error">
-                                {submitError}
-                            </Alert>
-                        )}
+                        {submitError && <Alert severity="error">{submitError}</Alert>}
 
                         <Button
                             variant="contained"

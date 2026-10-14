@@ -1,28 +1,28 @@
 {
-  "name": "@mission-control/rules",
-  "version": "1.0.0",
-  "private": true,
-  "description": "",
-  "homepage": "https://github.com/chrxmium/mission-control#readme",
-  "bugs": {
-    "url": "https://github.com/chrxmium/mission-control/issues"
-  },
-  "license": "ISC",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/chrxmium/mission-control.git"
-  },
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts"
+    "name": "@mission-control/rules",
+    "version": "1.0.0",
+    "private": true,
+    "description": "",
+    "homepage": "https://github.com/chrxmium/mission-control#readme",
+    "bugs": {
+        "url": "https://github.com/chrxmium/mission-control/issues"
+    },
+    "license": "ISC",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/chrxmium/mission-control.git"
+    },
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./src/index.ts",
+            "import": "./src/index.ts"
+        }
+    },
+    "scripts": {
+        "test": "tsx ./src/score.test.ts"
+    },
+    "devDependencies": {
+        "tsx": "^4.23.15"
     }
-  },
-  "scripts": {
-    "test": "tsx ./src/score.test.ts"
-  },
-  "devDependencies": {
-    "tsx": "^4.23.15"
-  }
 }

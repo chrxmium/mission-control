@@ -1,16 +1,13 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "rootDir": "../..",
-    "outDir": "dist"
-  },
-  "include": [
-    "src",
-    "../../packages/rules/src"
-  ]
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "rootDir": "../..",
+        "outDir": "dist"
+    },
+    "include": ["src", "../../packages/rules/src"]
 }

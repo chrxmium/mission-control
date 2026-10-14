@@ -37,42 +37,32 @@ type RankingsResponse = {
 };
 
 export default function RankingsPage() {
-    const [rankings, setRankings] =
-        useState<Ranking[]>([]);
+    const [rankings, setRankings] = useState<Ranking[]>([]);
 
-    const [loading, setLoading] =
-        useState(true);
+    const [loading, setLoading] = useState(true);
 
-    const [error, setError] =
-        useState("");
+    const [error, setError] = useState("");
 
     const loadRankings = async () => {
         setLoading(true);
         setError("");
 
         try {
-            const response = await fetch(
-                "/api/v1/rankings",
-            );
+            const response = await fetch("/api/v1/rankings");
 
             if (!response.ok) {
-                setError(
-                    `Failed to load rankings (${response.status}).`,
-                );
+                setError(`Failed to load rankings (${response.status}).`);
 
                 return;
             }
 
-            const data: RankingsResponse =
-                await response.json();
+            const data: RankingsResponse = await response.json();
 
             setRankings(data.rankings);
         } catch (error) {
             console.error(error);
 
-            setError(
-                "Failed to connect to the server.",
-            );
+            setError("Failed to connect to the server.");
         } finally {
             setLoading(false);
         }
@@ -82,17 +72,9 @@ export default function RankingsPage() {
         void loadRankings();
     }, []);
 
-    const rankedTeams =
-        rankings.filter(
-            (team) =>
-                team.rank !== null,
-        );
+    const rankedTeams = rankings.filter((team) => team.rank !== null);
 
-    const unrankedTeams =
-        rankings.filter(
-            (team) =>
-                team.rank === null,
-        );
+    const unrankedTeams = rankings.filter((team) => team.rank === null);
 
     return (
         <Box sx={{ py: 3 }}>
@@ -103,8 +85,7 @@ export default function RankingsPage() {
                 }}
                 spacing={2}
                 sx={{
-                    justifyContent:
-                        "space-between",
+                    justifyContent: "space-between",
                     alignItems: {
                         xs: "stretch",
                         sm: "center",
@@ -137,10 +118,7 @@ export default function RankingsPage() {
                         </Typography>
                     </Stack>
 
-                    <Typography
-                        color="text.secondary"
-                        sx={{ mt: 0.75 }}
-                    >
+                    <Typography color="text.secondary" sx={{ mt: 0.75 }}>
                         BIOGLOW · Official Match Rankings
                     </Typography>
                 </Box>
@@ -152,20 +130,12 @@ export default function RankingsPage() {
                         alignItems: "center",
                     }}
                 >
-                    <Chip
-                        label="Qualification"
-                        color="primary"
-                        variant="outlined"
-                    />
+                    <Chip label="Qualification" color="primary" variant="outlined" />
 
                     <Button
                         variant="outlined"
-                        startIcon={
-                            <RefreshIcon />
-                        }
-                        onClick={() =>
-                            void loadRankings()
-                        }
+                        startIcon={<RefreshIcon />}
+                        onClick={() => void loadRankings()}
                         disabled={loading}
                     >
                         Refresh
@@ -174,10 +144,7 @@ export default function RankingsPage() {
             </Stack>
 
             {error && (
-                <Alert
-                    severity="error"
-                    sx={{ mb: 2 }}
-                >
+                <Alert severity="error" sx={{ mb: 2 }}>
                     {error}
                 </Alert>
             )}
@@ -198,8 +165,7 @@ export default function RankingsPage() {
                             px: 2.5,
                             py: 2,
                             borderBottom: 1,
-                            borderColor:
-                                "divider",
+                            borderColor: "divider",
                         }}
                     >
                         <Stack
@@ -209,8 +175,7 @@ export default function RankingsPage() {
                             }}
                             spacing={1}
                             sx={{
-                                justifyContent:
-                                    "space-between",
+                                justifyContent: "space-between",
                                 alignItems: {
                                     xs: "flex-start",
                                     sm: "center",
@@ -226,18 +191,12 @@ export default function RankingsPage() {
                                     Team standings
                                 </Typography>
 
-                                <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                >
+                                <Typography variant="body2" color="text.secondary">
                                     Ranked by average score across official matches.
                                 </Typography>
                             </Box>
 
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
+                            <Typography variant="body2" color="text.secondary">
                                 {rankings.length} teams
                             </Typography>
                         </Stack>
@@ -248,8 +207,7 @@ export default function RankingsPage() {
                             sx={{
                                 py: 8,
                                 display: "flex",
-                                justifyContent:
-                                    "center",
+                                justifyContent: "center",
                             }}
                         >
                             <CircularProgress />
@@ -259,8 +217,7 @@ export default function RankingsPage() {
                             sx={{
                                 py: 8,
                                 px: 2,
-                                textAlign:
-                                    "center",
+                                textAlign: "center",
                             }}
                         >
                             <Typography
@@ -271,11 +228,7 @@ export default function RankingsPage() {
                                 No teams yet
                             </Typography>
 
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mt: 0.5 }}
-                            >
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                                 Rankings will appear once teams and scores are added.
                             </Typography>
                         </Box>
@@ -334,199 +287,147 @@ export default function RankingsPage() {
                                 </TableHead>
 
                                 <TableBody>
-                                    {rankedTeams.map(
-                                        (team) => (
-                                            <TableRow
-                                                key={
-                                                    team.teamId
-                                                }
-                                                hover
-                                            >
-                                                <TableCell>
-                                                    <Box
-                                                        sx={{
-                                                            width: 38,
-                                                            height: 38,
-                                                            borderRadius:
-                                                                "50%",
-                                                            bgcolor:
-                                                                team.rank === 1
-                                                                    ? "primary.main"
-                                                                    : "action.hover",
-                                                            color:
-                                                                team.rank === 1
-                                                                    ? "primary.contrastText"
-                                                                    : "text.primary",
-                                                            display:
-                                                                "flex",
-                                                            alignItems:
-                                                                "center",
-                                                            justifyContent:
-                                                                "center",
-                                                            fontWeight: 800,
-                                                        }}
-                                                    >
-                                                        {
-                                                            team.rank
-                                                        }
-                                                    </Box>
+                                    {rankedTeams.map((team) => (
+                                        <TableRow key={team.teamId} hover>
+                                            <TableCell>
+                                                <Box
+                                                    sx={{
+                                                        width: 38,
+                                                        height: 38,
+                                                        borderRadius: "50%",
+                                                        bgcolor:
+                                                            team.rank === 1
+                                                                ? "primary.main"
+                                                                : "action.hover",
+                                                        color:
+                                                            team.rank === 1
+                                                                ? "primary.contrastText"
+                                                                : "text.primary",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        fontWeight: 800,
+                                                    }}
+                                                >
+                                                    {team.rank}
+                                                </Box>
+                                            </TableCell>
+
+                                            <TableCell>
+                                                <Typography
+                                                    sx={{
+                                                        fontWeight: 800,
+                                                    }}
+                                                >
+                                                    {team.teamNumber}
+                                                </Typography>
+
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {team.teamName}
+                                                </Typography>
+                                            </TableCell>
+
+                                            <TableCell align="center">{team.matches}</TableCell>
+
+                                            <TableCell align="right">
+                                                <Typography
+                                                    sx={{
+                                                        fontWeight: 800,
+                                                        fontSize: "1.05rem",
+                                                    }}
+                                                >
+                                                    {team.averageScore !== null
+                                                        ? team.averageScore.toFixed(1)
+                                                        : "—"}
+                                                </Typography>
+                                            </TableCell>
+
+                                            <TableCell align="right">
+                                                <Typography
+                                                    sx={{
+                                                        fontWeight: 700,
+                                                    }}
+                                                >
+                                                    {team.highScore ?? "—"}
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+
+                                    {unrankedTeams.length > 0 && (
+                                        <>
+                                            <TableRow>
+                                                <TableCell
+                                                    colSpan={5}
+                                                    sx={{
+                                                        py: 0,
+                                                    }}
+                                                >
+                                                    <Divider />
                                                 </TableCell>
+                                            </TableRow>
 
-                                                <TableCell>
+                                            <TableRow>
+                                                <TableCell
+                                                    colSpan={5}
+                                                    sx={{
+                                                        bgcolor: "action.hover",
+                                                        py: 1,
+                                                    }}
+                                                >
                                                     <Typography
-                                                        sx={{
-                                                            fontWeight: 800,
-                                                        }}
-                                                    >
-                                                        {
-                                                            team.teamNumber
-                                                        }
-                                                    </Typography>
-
-                                                    <Typography
-                                                        variant="body2"
+                                                        variant="caption"
                                                         color="text.secondary"
-                                                    >
-                                                        {
-                                                            team.teamName
-                                                        }
-                                                    </Typography>
-                                                </TableCell>
-
-                                                <TableCell align="center">
-                                                    {
-                                                        team.matches
-                                                    }
-                                                </TableCell>
-
-                                                <TableCell align="right">
-                                                    <Typography
-                                                        sx={{
-                                                            fontWeight: 800,
-                                                            fontSize:
-                                                                "1.05rem",
-                                                        }}
-                                                    >
-                                                        {team.averageScore !==
-                                                        null
-                                                            ? team.averageScore.toFixed(
-                                                                1,
-                                                            )
-                                                            : "—"}
-                                                    </Typography>
-                                                </TableCell>
-
-                                                <TableCell align="right">
-                                                    <Typography
                                                         sx={{
                                                             fontWeight: 700,
                                                         }}
                                                     >
-                                                        {team.highScore ??
-                                                            "—"}
+                                                        NOT YET RANKED
                                                     </Typography>
                                                 </TableCell>
                                             </TableRow>
-                                        ),
-                                    )}
 
-                                    {unrankedTeams.length >
-                                        0 && (
-                                            <>
-                                                <TableRow>
-                                                    <TableCell
-                                                        colSpan={
-                                                            5
-                                                        }
-                                                        sx={{
-                                                            py: 0,
-                                                        }}
-                                                    >
-                                                        <Divider />
-                                                    </TableCell>
-                                                </TableRow>
-
-                                                <TableRow>
-                                                    <TableCell
-                                                        colSpan={
-                                                            5
-                                                        }
-                                                        sx={{
-                                                            bgcolor:
-                                                                "action.hover",
-                                                            py: 1,
-                                                        }}
-                                                    >
+                                            {unrankedTeams.map((team) => (
+                                                <TableRow key={team.teamId} hover>
+                                                    <TableCell>
                                                         <Typography
-                                                            variant="caption"
                                                             color="text.secondary"
                                                             sx={{
                                                                 fontWeight: 700,
                                                             }}
                                                         >
-                                                            NOT YET RANKED
+                                                            —
                                                         </Typography>
                                                     </TableCell>
-                                                </TableRow>
 
-                                                {unrankedTeams.map(
-                                                    (team) => (
-                                                        <TableRow
-                                                            key={
-                                                                team.teamId
-                                                            }
-                                                            hover
+                                                    <TableCell>
+                                                        <Typography
+                                                            sx={{
+                                                                fontWeight: 700,
+                                                            }}
                                                         >
-                                                            <TableCell>
-                                                                <Typography
-                                                                    color="text.secondary"
-                                                                    sx={{
-                                                                        fontWeight: 700,
-                                                                    }}
-                                                                >
-                                                                    —
-                                                                </Typography>
-                                                            </TableCell>
+                                                            {team.teamNumber}
+                                                        </Typography>
 
-                                                            <TableCell>
-                                                                <Typography
-                                                                    sx={{
-                                                                        fontWeight: 700,
-                                                                    }}
-                                                                >
-                                                                    {
-                                                                        team.teamNumber
-                                                                    }
-                                                                </Typography>
+                                                        <Typography
+                                                            variant="body2"
+                                                            color="text.secondary"
+                                                        >
+                                                            {team.teamName}
+                                                        </Typography>
+                                                    </TableCell>
 
-                                                                <Typography
-                                                                    variant="body2"
-                                                                    color="text.secondary"
-                                                                >
-                                                                    {
-                                                                        team.teamName
-                                                                    }
-                                                                </Typography>
-                                                            </TableCell>
+                                                    <TableCell align="center">
+                                                        {team.matches}
+                                                    </TableCell>
 
-                                                            <TableCell align="center">
-                                                                {
-                                                                    team.matches
-                                                                }
-                                                            </TableCell>
+                                                    <TableCell align="right">—</TableCell>
 
-                                                            <TableCell align="right">
-                                                                —
-                                                            </TableCell>
-
-                                                            <TableCell align="right">
-                                                                —
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ),
-                                                )}
-                                            </>
-                                        )}
+                                                    <TableCell align="right">—</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </>
+                                    )}
                                 </TableBody>
                             </Table>
                         </TableContainer>

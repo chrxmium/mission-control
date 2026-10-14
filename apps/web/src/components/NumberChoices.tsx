@@ -1,10 +1,4 @@
-import {
-    Box,
-    Stack,
-    ToggleButton,
-    ToggleButtonGroup,
-    Typography,
-} from "@mui/material";
+import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 
 type NumberChoicesProps = {
     label: string;
@@ -16,13 +10,13 @@ type NumberChoicesProps = {
 };
 
 export default function NumberChoices({
-                                          label,
-                                          description,
-                                          value,
-                                          values,
-                                          onChange,
-                                          plusLabelForLast = false,
-                                      }: NumberChoicesProps) {
+    label,
+    description,
+    value,
+    values,
+    onChange,
+    plusLabelForLast = false,
+}: NumberChoicesProps) {
     return (
         <Stack
             direction={{
@@ -50,16 +44,10 @@ export default function NumberChoices({
                     minWidth: 0,
                 }}
             >
-                <Typography sx={{ fontWeight: 600 }}>
-                    {label}
-                </Typography>
+                <Typography sx={{ fontWeight: 600 }}>{label}</Typography>
 
                 {description && (
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 0.25 }}
-                    >
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
                         {description}
                     </Typography>
                 )}
@@ -84,10 +72,7 @@ export default function NumberChoices({
                             minHeight: 48,
                         }}
                     >
-                        {plusLabelForLast &&
-                        index === values.length - 1
-                            ? `${option}+`
-                            : option}
+                        {plusLabelForLast && index === values.length - 1 ? `${option}+` : option}
                     </ToggleButton>
                 ))}
             </ToggleButtonGroup>

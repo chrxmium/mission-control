@@ -61,53 +61,31 @@ export default function AdminPage() {
                 }}
             >
                 <Box>
-                    <Typography
-                        variant="h4"
-                        sx={{ fontWeight: 800 }}
-                    >
+                    <Typography variant="h4" sx={{ fontWeight: 800 }}>
                         Admin
                     </Typography>
 
-                    <Typography
-                        color="text.secondary"
-                        sx={{ mt: 0.5 }}
-                    >
+                    <Typography color="text.secondary" sx={{ mt: 0.5 }}>
                         Head referee dashboard
                     </Typography>
                 </Box>
 
-                <Stack
-                    direction="row"
-                    spacing={1}
-                >
-                    <Button
-                        variant="outlined"
-                        startIcon={<RefreshIcon />}
-                    >
+                <Stack direction="row" spacing={1}>
+                    <Button variant="outlined" startIcon={<RefreshIcon />}>
                         Refresh
                     </Button>
 
-                    <Button
-                        variant="outlined"
-                        startIcon={<SettingsIcon />}
-                    >
+                    <Button variant="outlined" startIcon={<SettingsIcon />}>
                         Settings
                     </Button>
                 </Stack>
             </Stack>
 
-            <Grid
-                container
-                spacing={2}
-                sx={{ mb: 2 }}
-            >
+            <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Card variant="outlined">
                         <CardContent>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
+                            <Typography variant="body2" color="text.secondary">
                                 Teams
                             </Typography>
 
@@ -127,10 +105,7 @@ export default function AdminPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Card variant="outlined">
                         <CardContent>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
+                            <Typography variant="body2" color="text.secondary">
                                 Scores Submitted
                             </Typography>
 
@@ -150,10 +125,7 @@ export default function AdminPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Card variant="outlined">
                         <CardContent>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
+                            <Typography variant="body2" color="text.secondary">
                                 Current Match
                             </Typography>
 
@@ -173,10 +145,7 @@ export default function AdminPage() {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Card variant="outlined">
                         <CardContent>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
+                            <Typography variant="body2" color="text.secondary">
                                 Active Tablets
                             </Typography>
 
@@ -194,10 +163,7 @@ export default function AdminPage() {
                 </Grid>
             </Grid>
 
-            <Grid
-                container
-                spacing={2}
-            >
+            <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 7 }}>
                     <Card variant="outlined">
                         <CardContent>
@@ -205,39 +171,27 @@ export default function AdminPage() {
                                 direction="row"
                                 spacing={2}
                                 sx={{
-                                    justifyContent:
-                                        "space-between",
+                                    justifyContent: "space-between",
                                     alignItems: "center",
                                     mb: 2,
                                 }}
                             >
                                 <Box>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{ fontWeight: 800 }}
-                                    >
+                                    <Typography variant="h6" sx={{ fontWeight: 800 }}>
                                         Recent Scores
                                     </Typography>
 
-                                    <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                    >
+                                    <Typography variant="body2" color="text.secondary">
                                         Latest submitted scoresheets
                                     </Typography>
                                 </Box>
 
-                                <Button
-                                    variant="contained"
-                                    startIcon={<AddIcon />}
-                                >
+                                <Button variant="contained" startIcon={<AddIcon />}>
                                     New Score
                                 </Button>
                             </Stack>
 
-                            <Stack
-                                divider={<Divider flexItem />}
-                            >
+                            <Stack divider={<Divider flexItem />}>
                                 {recentScores.map((entry) => (
                                     <Stack
                                         key={entry.id}
@@ -248,8 +202,7 @@ export default function AdminPage() {
                                         spacing={2}
                                         sx={{
                                             py: 1.5,
-                                            justifyContent:
-                                                "space-between",
+                                            justifyContent: "space-between",
                                             alignItems: {
                                                 xs: "flex-start",
                                                 sm: "center",
@@ -257,18 +210,12 @@ export default function AdminPage() {
                                         }}
                                     >
                                         <Box>
-                                            <Typography
-                                                sx={{ fontWeight: 700 }}
-                                            >
+                                            <Typography sx={{ fontWeight: 700 }}>
                                                 Team {entry.team}
                                             </Typography>
 
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                            >
-                                                Match {entry.match} · Table{" "}
-                                                {entry.table}
+                                            <Typography variant="body2" color="text.secondary">
+                                                Match {entry.match} · Table {entry.table}
                                             </Typography>
                                         </Box>
 
@@ -304,10 +251,7 @@ export default function AdminPage() {
                     <Stack spacing={2}>
                         <Card variant="outlined">
                             <CardContent>
-                                <Typography
-                                    variant="h6"
-                                    sx={{ fontWeight: 800 }}
-                                >
+                                <Typography variant="h6" sx={{ fontWeight: 800 }}>
                                     Referee Access
                                 </Typography>
 
@@ -316,8 +260,7 @@ export default function AdminPage() {
                                     color="text.secondary"
                                     sx={{ mt: 0.5, mb: 2 }}
                                 >
-                                    Generate a temporary QR code to unlock a
-                                    referee tablet.
+                                    Generate a temporary QR code to unlock a referee tablet.
                                 </Typography>
 
                                 <Box
@@ -351,11 +294,7 @@ export default function AdminPage() {
                                     </Stack>
                                 </Box>
 
-                                <Button
-                                    fullWidth
-                                    variant="contained"
-                                    startIcon={<QrCode2Icon />}
-                                >
+                                <Button fullWidth variant="contained" startIcon={<QrCode2Icon />}>
                                     Generate Unlock QR
                                 </Button>
                             </CardContent>
@@ -363,10 +302,7 @@ export default function AdminPage() {
 
                         <Card variant="outlined">
                             <CardContent>
-                                <Typography
-                                    variant="h6"
-                                    sx={{ fontWeight: 800 }}
-                                >
+                                <Typography variant="h6" sx={{ fontWeight: 800 }}>
                                     Match Control
                                 </Typography>
 
@@ -378,10 +314,7 @@ export default function AdminPage() {
                                     Match calling and table status will go here.
                                 </Typography>
 
-                                <Stack
-                                    direction="row"
-                                    spacing={1}
-                                >
+                                <Stack direction="row" spacing={1}>
                                     <Chip
                                         label="Table 1 Ready"
                                         color="success"

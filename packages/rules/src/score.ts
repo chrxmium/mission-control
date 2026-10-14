@@ -19,10 +19,7 @@ export function score(sheet: ScoreSheet): number {
 
     // Bonus: all 3 species must be in the Young Forest
     // AND the invasive queen must be knocked down.
-    if (
-        sheet.m01_young_forest >= 3 &&
-        sheet.m01_queen_knocked_down
-    ) {
+    if (sheet.m01_young_forest >= 3 && sheet.m01_queen_knocked_down) {
         total += 40;
     }
 
@@ -92,5 +89,4 @@ export function score(sheet: ScoreSheet): number {
 
     // The final score cannot be below 0.
     return Math.max(0, total);
-
 }

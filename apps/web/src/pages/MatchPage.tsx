@@ -20,17 +20,11 @@ import Stepper from "../components/Stepper";
 import TeamScoreForm from "../components/TeamScoreForm";
 
 import { createDefaultScoreSheet } from "../lib/defaultScoreSheet";
-import {
-    calculateTeamMatchScore,
-} from "../lib/matchScoring";
+import { calculateTeamMatchScore } from "../lib/matchScoring";
 
-import type {
-    ParticipationStatus,
-} from "../lib/matchScoring";
+import type { ParticipationStatus } from "../lib/matchScoring";
 
-import type {
-    ScoreSheet,
-} from "../../../../packages/rules/src/types.ts";
+import type { ScoreSheet } from "../../../../packages/rules/src/types.ts";
 
 type Team = {
     id: number;
@@ -65,19 +59,13 @@ export default function MatchPage() {
     const [tableNumber, setTableNumber] = useState(1);
     const [sharedM05, setSharedM05] = useState(0);
 
-    const [team1Sheet, setTeam1Sheet] = useState<ScoreSheet>(
-        createDefaultScoreSheet(),
-    );
+    const [team1Sheet, setTeam1Sheet] = useState<ScoreSheet>(createDefaultScoreSheet());
 
-    const [team2Sheet, setTeam2Sheet] = useState<ScoreSheet>(
-        createDefaultScoreSheet(),
-    );
+    const [team2Sheet, setTeam2Sheet] = useState<ScoreSheet>(createDefaultScoreSheet());
 
-    const [team1Participation, setTeam1Participation] =
-        useState<ParticipationStatus>("playing");
+    const [team1Participation, setTeam1Participation] = useState<ParticipationStatus>("playing");
 
-    const [team2Participation, setTeam2Participation] =
-        useState<ParticipationStatus>("playing");
+    const [team2Participation, setTeam2Participation] = useState<ParticipationStatus>("playing");
 
     useEffect(() => {
         const controller = new AbortController();
@@ -88,28 +76,20 @@ export default function MatchPage() {
             setMatch(null);
 
             try {
-                const response = await fetch(
-                    "/api/v1/matches",
-                    { signal: controller.signal },
-                );
+                const response = await fetch("/api/v1/matches", { signal: controller.signal });
 
                 if (!response.ok) {
-                    setError(
-                        `Failed to load match (${response.status}).`,
-                    );
+                    setError(`Failed to load match (${response.status}).`);
                     return;
                 }
 
-                const data: MatchesResponse =
-                    await response.json();
+                const data: MatchesResponse = await response.json();
 
                 if (controller.signal.aborted) {
                     return;
                 }
 
-                const selectedMatch = data.matches.find(
-                    (entry) => entry.id === Number(id),
-                );
+                const selectedMatch = data.matches.find((entry) => entry.id === Number(id));
 
                 if (!selectedMatch) {
                     setError("Match not found.");
@@ -153,13 +133,13 @@ export default function MatchPage() {
 
     const team2Score = match?.team2
         ? calculateTeamMatchScore(
-            {
-                teamId: match.team2.id,
-                participation: team2Participation,
-                sheet: team2Sheet,
-            },
-            sharedM05,
-        )
+              {
+                  teamId: match.team2.id,
+                  participation: team2Participation,
+                  sheet: team2Sheet,
+              },
+              sharedM05,
+          )
         : null;
 
     const submitMatch = async () => {
@@ -179,34 +159,31 @@ export default function MatchPage() {
         setSubmitError("");
 
         try {
-            const response = await fetch(
-                `/api/v1/matches/${match.id}/submit`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        tableNumber,
-                        sharedM05,
-
-                        team1: {
-                            teamId: match.team1.id,
-                            participation: team1Participation,
-                            sheet: team1Sheet,
-                        },
-
-                        team2: match.team2
-                            ? {
-                                teamId: match.team2.id,
-                                participation: team2Participation,
-                                sheet: team2Sheet,
-                            }
-                            : null,
-                    }),
+            const response = await fetch(`/api/v1/matches/${match.id}/submit`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
-            );
+                body: JSON.stringify({
+                    tableNumber,
+                    sharedM05,
+
+                    team1: {
+                        teamId: match.team1.id,
+                        participation: team1Participation,
+                        sheet: team1Sheet,
+                    },
+
+                    team2: match.team2
+                        ? {
+                              teamId: match.team2.id,
+                              participation: team2Participation,
+                              sheet: team2Sheet,
+                          }
+                        : null,
+                }),
+            });
 
             // If the session is invalid or expired,
             // clear it and require a new login.
@@ -220,9 +197,7 @@ export default function MatchPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                setSubmitError(
-                    data.error ?? "Failed to submit match.",
-                );
+                setSubmitError(data.error ?? "Failed to submit match.");
                 return;
             }
 
@@ -231,9 +206,7 @@ export default function MatchPage() {
         } catch (error) {
             console.error("Match submission failed:", error);
 
-            setSubmitError(
-                "Failed to connect to the server.",
-            );
+            setSubmitError("Failed to connect to the server.");
         } finally {
             setSubmitting(false);
         }
@@ -257,14 +230,9 @@ export default function MatchPage() {
         return (
             <Container maxWidth="lg" sx={{ py: 3 }}>
                 <Stack spacing={2}>
-                    <Alert severity="error">
-                        {error || "Match not found."}
-                    </Alert>
+                    <Alert severity="error">{error || "Match not found."}</Alert>
 
-                    <Button
-                        variant="outlined"
-                        onClick={() => navigate("/matches")}
-                    >
+                    <Button variant="outlined" onClick={() => navigate("/matches")}>
                         Back to Matches
                     </Button>
                 </Stack>
@@ -278,34 +246,25 @@ export default function MatchPage() {
                 <Stack spacing={3}>
                     <Stack
                         direction={{ xs: "column", sm: "row" }}
-spacing={2}
-                     sx={{
+                        spacing={2}
+                        sx={{
                             alignItems: { xs: "stretch", sm: "center" },
                             justifyContent: "space-between",
-                        }}>
+                        }}
+                    >
                         <Box>
-                            <Typography
-                                variant="h4"
-                             sx={{ fontWeight: 800 }}>
+                            <Typography variant="h4" sx={{ fontWeight: 800 }}>
                                 Match {match.matchNumber}
                             </Typography>
 
                             <Typography color="text.secondary">
                                 One referee ·{" "}
-                                {match.team2
-                                    ? "Two-team match"
-                                    : "Solo / remote match"}
+                                {match.team2 ? "Two-team match" : "Solo / remote match"}
                             </Typography>
                         </Box>
 
-                        <Stack
-                            direction="row"
-                            spacing={2}
-                         sx={{ alignItems: "center" }}>
-                            <Chip
-                                label={match.status}
-                                variant="outlined"
-                            />
+                        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+                            <Chip label={match.status} variant="outlined" />
 
                             <TextField
                                 label="Table"
@@ -313,14 +272,9 @@ spacing={2}
                                 size="small"
                                 value={tableNumber}
                                 onChange={(event) => {
-                                    const value = Number(
-                                        event.target.value,
-                                    );
+                                    const value = Number(event.target.value);
 
-                                    if (
-                                        Number.isInteger(value) &&
-                                        value > 0
-                                    ) {
+                                    if (Number.isInteger(value) && value > 0) {
                                         setTableNumber(value);
                                     }
                                 }}
@@ -348,9 +302,7 @@ spacing={2}
                                 sheet={team1Sheet}
                                 onChange={setTeam1Sheet}
                                 participation={team1Participation}
-                                onParticipationChange={
-                                    setTeam1Participation
-                                }
+                                onParticipationChange={setTeam1Participation}
                                 totalScore={team1Score}
                             />
                         </Grid>
@@ -363,9 +315,7 @@ spacing={2}
                                     sheet={team2Sheet}
                                     onChange={setTeam2Sheet}
                                     participation={team2Participation}
-                                    onParticipationChange={
-                                        setTeam2Participation
-                                    }
+                                    onParticipationChange={setTeam2Participation}
                                     totalScore={team2Score ?? 0}
                                 />
                             </Grid>
@@ -383,25 +333,17 @@ spacing={2}
                             onChange={setSharedM05}
                         />
 
-                        <Stack
-                            direction={{ xs: "column", sm: "row" }}
-                            spacing={2}
-                            sx={{ mt: 2 }}
-                        >
+                        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
                             <Chip
                                 label={`Team ${match.team1.number}: ${
-                                    team1Participation === "playing"
-                                        ? sharedM05 * 5
-                                        : 0
+                                    team1Participation === "playing" ? sharedM05 * 5 : 0
                                 } M05 pts`}
                             />
 
                             {match.team2 && (
                                 <Chip
                                     label={`Team ${match.team2.number}: ${
-                                        team2Participation === "playing"
-                                            ? sharedM05 * 5
-                                            : 0
+                                        team2Participation === "playing" ? sharedM05 * 5 : 0
                                     } M05 pts`}
                                 />
                             )}
@@ -428,44 +370,29 @@ spacing={2}
                     <Stack
                         direction={{ xs: "column", sm: "row" }}
                         spacing={2}
-sx={{
+                        sx={{
                             alignItems: { xs: "stretch", sm: "center" },
                             justifyContent: "space-between",
-                        }}>
-                        <Stack
-                            direction="row"
-                            spacing={3}
-                            sx={{ flexWrap: "wrap" }}
-                        >
+                        }}
+                    >
+                        <Stack direction="row" spacing={3} sx={{ flexWrap: "wrap" }}>
                             <Box>
-                                <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                >
+                                <Typography variant="caption" color="text.secondary">
                                     TEAM {match.team1.number}
                                 </Typography>
 
-                                <Typography
-                                    variant="h5"
-                                    sx={{ fontWeight: 800 }}
-                                >
+                                <Typography variant="h5" sx={{ fontWeight: 800 }}>
                                     {team1Score}
                                 </Typography>
                             </Box>
 
                             {match.team2 && (
                                 <Box>
-                                    <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                    >
+                                    <Typography variant="caption" color="text.secondary">
                                         TEAM {match.team2.number}
                                     </Typography>
 
-                                    <Typography
-                                        variant="h5"
-                                        sx={{ fontWeight: 800 }}
-                                    >
+                                    <Typography variant="h5" sx={{ fontWeight: 800 }}>
                                         {team2Score}
                                     </Typography>
                                 </Box>
@@ -473,11 +400,7 @@ sx={{
                         </Stack>
 
                         <Stack spacing={1}>
-                            {submitError && (
-                                <Alert severity="error">
-                                    {submitError}
-                                </Alert>
-                            )}
+                            {submitError && <Alert severity="error">{submitError}</Alert>}
 
                             <Button
                                 variant="contained"

@@ -5,14 +5,7 @@ import {
     LightMode as LightModeIcon,
 } from "@mui/icons-material";
 
-import {
-    IconButton,
-    ListItemIcon,
-    ListItemText,
-    Menu,
-    MenuItem,
-    Tooltip,
-} from "@mui/material";
+import { IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Tooltip } from "@mui/material";
 
 import { useState, type MouseEvent } from "react";
 
@@ -23,18 +16,12 @@ type ThemeSelectorProps = {
     onChange: (mode: ThemeMode) => void;
 };
 
-export default function ThemeSelector({
-                                          themeMode,
-                                          onChange,
-                                      }: ThemeSelectorProps) {
-    const [anchorEl, setAnchorEl] =
-        useState<HTMLElement | null>(null);
+export default function ThemeSelector({ themeMode, onChange }: ThemeSelectorProps) {
+    const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
     const open = Boolean(anchorEl);
 
-    const openMenu = (
-        event: MouseEvent<HTMLElement>,
-    ) => {
+    const openMenu = (event: MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
 
@@ -59,71 +46,40 @@ export default function ThemeSelector({
     return (
         <>
             <Tooltip title="Theme">
-                <IconButton
-                    onClick={openMenu}
-                    aria-label="Change theme"
-                >
+                <IconButton onClick={openMenu} aria-label="Change theme">
                     {icon}
                 </IconButton>
             </Tooltip>
 
-            <Menu
-                anchorEl={anchorEl}
-                open={open}
-                onClose={closeMenu}
-            >
-                <MenuItem
-                    onClick={() =>
-                        selectMode("system")
-                    }
-                >
+            <Menu anchorEl={anchorEl} open={open} onClose={closeMenu}>
+                <MenuItem onClick={() => selectMode("system")}>
                     <ListItemIcon>
                         <BrightnessAutoIcon />
                     </ListItemIcon>
 
-                    <ListItemText>
-                        System
-                    </ListItemText>
+                    <ListItemText>System</ListItemText>
 
-                    {themeMode === "system" && (
-                        <CheckIcon fontSize="small" />
-                    )}
+                    {themeMode === "system" && <CheckIcon fontSize="small" />}
                 </MenuItem>
 
-                <MenuItem
-                    onClick={() =>
-                        selectMode("light")
-                    }
-                >
+                <MenuItem onClick={() => selectMode("light")}>
                     <ListItemIcon>
                         <LightModeIcon />
                     </ListItemIcon>
 
-                    <ListItemText>
-                        Light
-                    </ListItemText>
+                    <ListItemText>Light</ListItemText>
 
-                    {themeMode === "light" && (
-                        <CheckIcon fontSize="small" />
-                    )}
+                    {themeMode === "light" && <CheckIcon fontSize="small" />}
                 </MenuItem>
 
-                <MenuItem
-                    onClick={() =>
-                        selectMode("dark")
-                    }
-                >
+                <MenuItem onClick={() => selectMode("dark")}>
                     <ListItemIcon>
                         <DarkModeIcon />
                     </ListItemIcon>
 
-                    <ListItemText>
-                        Dark
-                    </ListItemText>
+                    <ListItemText>Dark</ListItemText>
 
-                    {themeMode === "dark" && (
-                        <CheckIcon fontSize="small" />
-                    )}
+                    {themeMode === "dark" && <CheckIcon fontSize="small" />}
                 </MenuItem>
             </Menu>
         </>

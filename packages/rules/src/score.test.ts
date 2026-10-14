@@ -24,54 +24,50 @@ const baseSheet: ScoreSheet = {
 
     interference: 0,
 
-    gp: 3
+    gp: 3,
 };
 
 // Normal scoring test
-assert.equal(
-    score(baseSheet),
-    455,
-    "Normal score should equal 455"
-);
+assert.equal(score(baseSheet), 455, "Normal score should equal 455");
 
 // First interference: -10 points
 assert.equal(
     score({
         ...baseSheet,
-        interference: 1
+        interference: 1,
     }),
     445,
-    "First interference should subtract 10 points"
+    "First interference should subtract 10 points",
 );
 
 // Second interference: -30 points total
 assert.equal(
     score({
         ...baseSheet,
-        interference: 2
+        interference: 2,
     }),
     425,
-    "Second interference should subtract 30 points"
+    "Second interference should subtract 30 points",
 );
 
 // Third interference: score becomes 0
 assert.equal(
     score({
         ...baseSheet,
-        interference: 3
+        interference: 3,
     }),
     0,
-    "Third interference should make the score 0"
+    "Third interference should make the score 0",
 );
 
 // More than three interferences: score remains 0
 assert.equal(
     score({
         ...baseSheet,
-        interference: 5
+        interference: 5,
     }),
     0,
-    "Three or more interferences should make the score 0"
+    "Three or more interferences should make the score 0",
 );
 
 // M01 counts should cap at 3
@@ -81,89 +77,89 @@ assert.equal(
 
         m01_young_forest: 10,
         m01_grand_tree: 10,
-        m01_hollow_tree: 10
+        m01_hollow_tree: 10,
     }),
     515,
-    "M01 locations should each cap at 3"
+    "M01 locations should each cap at 3",
 );
 
 // M01 bonus should not apply if queen is not knocked down
 assert.equal(
     score({
         ...baseSheet,
-        m01_queen_knocked_down: false
+        m01_queen_knocked_down: false,
     }),
     415,
-    "M01 bonus should require the queen to be knocked down"
+    "M01 bonus should require the queen to be knocked down",
 );
 
 // M01 bonus should not apply with fewer than 3 in the Young Forest
 assert.equal(
     score({
         ...baseSheet,
-        m01_young_forest: 2
+        m01_young_forest: 2,
     }),
     395,
-    "M01 bonus should require 3 species in the Young Forest"
+    "M01 bonus should require 3 species in the Young Forest",
 );
 
 // M02 Canopy Chamber should cap at 15
 assert.equal(
     score({
         ...baseSheet,
-        m02_canopy: 20
+        m02_canopy: 20,
     }),
     535,
-    "M02 Canopy Chamber should cap at 15"
+    "M02 Canopy Chamber should cap at 15",
 );
 
 // M03 Waterfall should cap at 50
 assert.equal(
     score({
         ...baseSheet,
-        m03_waterfall: 100
+        m03_waterfall: 100,
     }),
     645,
-    "M03 Waterfall should cap at 50"
+    "M03 Waterfall should cap at 50",
 );
 
 // Level Up added should cap at 5
 assert.equal(
     score({
         ...baseSheet,
-        lu_added: 10
+        lu_added: 10,
     }),
     515,
-    "Level Up added invasive species should cap at 5"
+    "Level Up added invasive species should cap at 5",
 );
 
 // Contained invasive species are not capped
 assert.equal(
     score({
         ...baseSheet,
-        lu_contained: 10
+        lu_contained: 10,
     }),
     525,
-    "Contained invasive species should not be capped"
+    "Contained invasive species should not be capped",
 );
 
 // GP should not affect the score
 assert.equal(
     score({
         ...baseSheet,
-        gp: 2
+        gp: 2,
     }),
     455,
-    "GP rating should not affect match score"
+    "GP rating should not affect match score",
 );
 
 assert.equal(
     score({
         ...baseSheet,
-        gp: 4
+        gp: 4,
     }),
     455,
-    "GP rating should not affect match score"
+    "GP rating should not affect match score",
 );
 
 // Score cannot go below 0
@@ -188,13 +184,9 @@ const lowScoreSheet: ScoreSheet = {
 
     interference: 1,
 
-    gp: 3
+    gp: 3,
 };
 
-assert.equal(
-    score(lowScoreSheet),
-    0,
-    "Score should never go below 0"
-);
+assert.equal(score(lowScoreSheet), 0, "Score should never go below 0");
 
 console.log("All score tests passed.");

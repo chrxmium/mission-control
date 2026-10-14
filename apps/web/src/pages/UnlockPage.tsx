@@ -4,16 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 
-import {
-    Alert,
-    Box,
-    Button,
-    Card,
-    CardContent,
-    Stack,
-    TextField,
-    Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
 
 export default function UnlockPage() {
     const navigate = useNavigate();
@@ -35,16 +26,13 @@ export default function UnlockPage() {
         setLoading(true);
 
         try {
-            const response = await fetch(
-                "/api/v1/auth/login",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ password }),
+            const response = await fetch("/api/v1/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
                 },
-            );
+                body: JSON.stringify({ password }),
+            });
 
             const data: {
                 token?: string;
@@ -52,9 +40,7 @@ export default function UnlockPage() {
             } = await response.json();
 
             if (!response.ok) {
-                setError(
-                    data.error ?? "Unable to unlock.",
-                );
+                setError(data.error ?? "Unable to unlock.");
                 return;
             }
 
@@ -64,10 +50,7 @@ export default function UnlockPage() {
             }
 
             // Store the token for this browser tab.
-            sessionStorage.setItem(
-                "referee_token",
-                data.token,
-            );
+            sessionStorage.setItem("referee_token", data.token);
 
             setPassword("");
 
@@ -76,9 +59,7 @@ export default function UnlockPage() {
         } catch (error) {
             console.error("Login failed:", error);
 
-            setError(
-                "Unable to connect to the server.",
-            );
+            setError("Unable to connect to the server.");
         } finally {
             setLoading(false);
         }
@@ -102,27 +83,16 @@ export default function UnlockPage() {
                 <CardContent sx={{ p: 3 }}>
                     <Stack spacing={3}>
                         <Box>
-                            <Typography
-                                variant="h4"
-                                sx={{ fontWeight: 800 }}
-                            >
+                            <Typography variant="h4" sx={{ fontWeight: 800 }}>
                                 Referee Unlock
                             </Typography>
 
-                            <Typography
-                                color="text.secondary"
-                                sx={{ mt: 0.5 }}
-                            >
-                                Enter the event referee password
-                                to unlock match scoring.
+                            <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                                Enter the event referee password to unlock match scoring.
                             </Typography>
                         </Box>
 
-                        {error && (
-                            <Alert severity="error">
-                                {error}
-                            </Alert>
-                        )}
+                        {error && <Alert severity="error">{error}</Alert>}
 
                         <Stack spacing={2}>
                             <TextField
@@ -132,9 +102,7 @@ export default function UnlockPage() {
                                 fullWidth
                                 value={password}
                                 disabled={loading}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
+                                onChange={(event) => setPassword(event.target.value)}
                                 onKeyDown={(event) => {
                                     if (event.key === "Enter") {
                                         void handlePasswordUnlock();
@@ -146,18 +114,14 @@ export default function UnlockPage() {
                                 variant="contained"
                                 size="large"
                                 startIcon={<LockOpenIcon />}
-                                onClick={() =>
-                                    void handlePasswordUnlock()
-                                }
+                                onClick={() => void handlePasswordUnlock()}
                                 disabled={loading}
                                 sx={{
                                     minHeight: 52,
                                     fontWeight: 700,
                                 }}
                             >
-                                {loading
-                                    ? "Unlocking..."
-                                    : "Unlock"}
+                                {loading ? "Unlocking..." : "Unlock"}
                             </Button>
                         </Stack>
 
@@ -168,8 +132,7 @@ export default function UnlockPage() {
                                 textAlign: "center",
                             }}
                         >
-                            Referee access is required
-                            to submit match scores.
+                            Referee access is required to submit match scores.
                         </Typography>
                     </Stack>
                 </CardContent>

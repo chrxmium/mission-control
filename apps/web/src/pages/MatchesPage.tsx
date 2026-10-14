@@ -59,37 +59,29 @@ export default function MatchesPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const [expandedMatch, setExpandedMatch] =
-        useState<number | null>(null);
+    const [expandedMatch, setExpandedMatch] = useState<number | null>(null);
 
     const loadMatches = async () => {
         setLoading(true);
         setError("");
 
         try {
-            const [matchesResponse, scoresheetsResponse] =
-                await Promise.all([
-                    fetch("/api/v1/matches"),
-                    fetch("/api/v1/scoresheets"),
-                ]);
+            const [matchesResponse, scoresheetsResponse] = await Promise.all([
+                fetch("/api/v1/matches"),
+                fetch("/api/v1/scoresheets"),
+            ]);
 
             if (!matchesResponse.ok) {
-                throw new Error(
-                    `Failed to load matches (${matchesResponse.status})`,
-                );
+                throw new Error(`Failed to load matches (${matchesResponse.status})`);
             }
 
             if (!scoresheetsResponse.ok) {
-                throw new Error(
-                    `Failed to load scoresheets (${scoresheetsResponse.status})`,
-                );
+                throw new Error(`Failed to load scoresheets (${scoresheetsResponse.status})`);
             }
 
-            const matchesData: MatchesResponse =
-                await matchesResponse.json();
+            const matchesData: MatchesResponse = await matchesResponse.json();
 
-            const scoresheetsData: ScoresheetsResponse =
-                await scoresheetsResponse.json();
+            const scoresheetsData: ScoresheetsResponse = await scoresheetsResponse.json();
 
             setMatches(matchesData.matches);
             setScoresheets(scoresheetsData.scoresheets);
@@ -105,21 +97,13 @@ export default function MatchesPage() {
         void loadMatches();
     }, []);
 
-    const getTeamScoresheet = (
-        match: Match,
-        team: Team,
-    ): Scoresheet | undefined => {
+    const getTeamScoresheet = (match: Match, team: Team): Scoresheet | undefined => {
         return scoresheets.find(
-            (sheet) =>
-                sheet.matchNumber === match.matchNumber &&
-                sheet.teamId === team.id,
+            (sheet) => sheet.matchNumber === match.matchNumber && sheet.teamId === team.id,
         );
     };
 
-    const renderTeamResult = (
-        match: Match,
-        team: Team,
-    ) => {
+    const renderTeamResult = (match: Match, team: Team) => {
         const sheet = getTeamScoresheet(match, team);
 
         return (
@@ -132,14 +116,9 @@ export default function MatchesPage() {
                 }}
             >
                 <Box>
-                    <Typography sx={{ fontWeight: 700 }}>
-                        Team {team.number}
-                    </Typography>
+                    <Typography sx={{ fontWeight: 700 }}>Team {team.number}</Typography>
 
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                    >
+                    <Typography variant="body2" color="text.secondary">
                         {team.name}
                     </Typography>
                 </Box>
@@ -182,18 +161,18 @@ export default function MatchesPage() {
                         sm: "row",
                     }}
                     spacing={2}
-sx={{
-                            alignItems: { xs: "stretch", sm: "center" },
-                            justifyContent: "space-between",
-                        }}>
+                    sx={{
+                        alignItems: { xs: "stretch", sm: "center" },
+                        justifyContent: "space-between",
+                    }}
+                >
                     <Box>
                         <Typography variant="h4" sx={{ fontWeight: 800 }}>
                             Matches
                         </Typography>
 
                         <Typography color="text.secondary">
-                            Score upcoming matches and review
-                            submitted results.
+                            Score upcoming matches and review submitted results.
                         </Typography>
                     </Box>
 
@@ -207,11 +186,7 @@ sx={{
                     </Button>
                 </Stack>
 
-                {error && (
-                    <Alert severity="error">
-                        {error}
-                    </Alert>
-                )}
+                {error && <Alert severity="error">{error}</Alert>}
 
                 {loading ? (
                     <Box
@@ -226,17 +201,12 @@ sx={{
                 ) : (
                     <Stack spacing={2}>
                         {matches.map((match) => {
-                            const submitted =
-                                match.status === "submitted";
+                            const submitted = match.status === "submitted";
 
-                            const expanded =
-                                expandedMatch === match.id;
+                            const expanded = expandedMatch === match.id;
 
                             return (
-                                <Card
-                                    key={match.id}
-                                    variant="outlined"
-                                >
+                                <Card key={match.id} variant="outlined">
                                     <CardContent>
                                         <Stack spacing={2}>
                                             <Stack
@@ -245,20 +215,22 @@ sx={{
                                                     sm: "row",
                                                 }}
                                                 spacing={2}
-sx={{
-                            alignItems: { xs: "stretch", sm: "center" },
-                            justifyContent: "space-between",
-                        }}>
+                                                sx={{
+                                                    alignItems: { xs: "stretch", sm: "center" },
+                                                    justifyContent: "space-between",
+                                                }}
+                                            >
                                                 <Box>
                                                     <Stack
                                                         direction="row"
                                                         spacing={1}
-                                                     sx={{ alignItems: "center" }}>
+                                                        sx={{ alignItems: "center" }}
+                                                    >
                                                         <Typography
                                                             variant="h6"
-                                                         sx={{ fontWeight: 800 }}>
-                                                            Match{" "}
-                                                            {match.matchNumber}
+                                                            sx={{ fontWeight: 800 }}
+                                                        >
+                                                            Match {match.matchNumber}
                                                         </Typography>
 
                                                         <Chip
@@ -269,9 +241,7 @@ sx={{
                                                                     : match.status
                                                             }
                                                             color={
-                                                                submitted
-                                                                    ? "success"
-                                                                    : "default"
+                                                                submitted ? "success" : "default"
                                                             }
                                                             variant="outlined"
                                                         />
@@ -283,8 +253,7 @@ sx={{
                                                             fontWeight: 600,
                                                         }}
                                                     >
-                                                        Team{" "}
-                                                        {match.team1.number}
+                                                        Team {match.team1.number}
                                                         {match.team2
                                                             ? ` vs Team ${match.team2.number}`
                                                             : " — Solo / Remote"}
@@ -308,40 +277,31 @@ sx={{
                                                         >
                                                             {new Date(
                                                                 match.scheduledAt,
-                                                            ).toLocaleString(
-                                                                "en-AU",
-                                                                {
-                                                                    dateStyle: "medium",
-                                                                    timeStyle: "short",
-                                                                },
-                                                            )}
+                                                            ).toLocaleString("en-AU", {
+                                                                dateStyle: "medium",
+                                                                timeStyle: "short",
+                                                            })}
                                                         </Typography>
                                                     )}
                                                 </Box>
 
                                                 <Button
-                                                    variant={
-                                                        submitted
-                                                            ? "outlined"
-                                                            : "contained"
-                                                    }
+                                                    variant={submitted ? "outlined" : "contained"}
                                                     size="large"
                                                     startIcon={
-                                                        submitted
-                                                            ? <VisibilityIcon />
-                                                            : <PlayArrowIcon />
+                                                        submitted ? (
+                                                            <VisibilityIcon />
+                                                        ) : (
+                                                            <PlayArrowIcon />
+                                                        )
                                                     }
                                                     onClick={() => {
                                                         if (submitted) {
                                                             setExpandedMatch(
-                                                                expanded
-                                                                    ? null
-                                                                    : match.id,
+                                                                expanded ? null : match.id,
                                                             );
                                                         } else {
-                                                            navigate(
-                                                                `/match/${match.id}`,
-                                                            );
+                                                            navigate(`/match/${match.id}`);
                                                         }
                                                     }}
                                                     sx={{
@@ -372,18 +332,12 @@ sx={{
                                                         Match Results
                                                     </Typography>
 
-                                                    {renderTeamResult(
-                                                        match,
-                                                        match.team1,
-                                                    )}
+                                                    {renderTeamResult(match, match.team1)}
 
                                                     {match.team2 && (
                                                         <>
                                                             <Divider />
-                                                            {renderTeamResult(
-                                                                match,
-                                                                match.team2,
-                                                            )}
+                                                            {renderTeamResult(match, match.team2)}
                                                         </>
                                                     )}
                                                 </Collapse>
@@ -395,9 +349,7 @@ sx={{
                         })}
 
                         {matches.length === 0 && (
-                            <Typography color="text.secondary">
-                                No matches scheduled.
-                            </Typography>
+                            <Typography color="text.secondary">No matches scheduled.</Typography>
                         )}
                     </Stack>
                 )}

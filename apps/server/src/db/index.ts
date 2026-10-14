@@ -6,8 +6,7 @@ import * as schema from "./schema.js";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
-const databasePath =
-    process.env.DATABASE_URL ?? "mission-control.db";
+const databasePath = process.env.DATABASE_URL ?? "mission-control.db";
 
 mkdirSync(dirname(databasePath), { recursive: true });
 

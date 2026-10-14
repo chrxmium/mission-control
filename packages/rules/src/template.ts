@@ -1,7 +1,4 @@
-export type FieldType =
-    | "counter"
-    | "boolean"
-    | "single_choice";
+export type FieldType = "counter" | "boolean" | "single_choice";
 
 export type FieldValue = number | boolean | string;
 
@@ -45,5 +42,4 @@ export interface ScoresheetTemplate {
     missions: ScoreMission[];
 }
 
-export type ScoresheetValues =
-    Record<string, FieldValue>;
+export type ScoresheetValues = Record<string, FieldValue>;

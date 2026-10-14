@@ -58,97 +58,51 @@ type Mission = {
     rows: [string, string][];
 };
 
-const yesNo = (value: boolean): string =>
-    value ? "Yes" : "No";
+const yesNo = (value: boolean): string => (value ? "Yes" : "No");
 
 function buildMissions(sheet: Scoresheet): Mission[] {
     return [
         {
             title: "M01 - Mighty Microbiomes",
             rows: [
-                [
-                    "Young Forest",
-                    String(sheet.m01YoungForest),
-                ],
-                [
-                    "Grand Tree",
-                    String(sheet.m01GrandTree),
-                ],
-                [
-                    "Hollow Tree",
-                    String(sheet.m01HollowTree),
-                ],
-                [
-                    "Invasive queen knocked down",
-                    yesNo(sheet.m01QueenKnockedDown),
-                ],
+                ["Young Forest", String(sheet.m01YoungForest)],
+                ["Grand Tree", String(sheet.m01GrandTree)],
+                ["Hollow Tree", String(sheet.m01HollowTree)],
+                ["Invasive queen knocked down", yesNo(sheet.m01QueenKnockedDown)],
             ],
         },
         {
             title: "M02 - Roots of Renewal",
             rows: [
-                [
-                    "Grand Tree base",
-                    String(sheet.m02Base),
-                ],
-                [
-                    "Canopy Chamber",
-                    String(sheet.m02Canopy),
-                ],
+                ["Grand Tree base", String(sheet.m02Base)],
+                ["Canopy Chamber", String(sheet.m02Canopy)],
             ],
         },
         {
             title: "M03 - Cave Waterfall",
-            rows: [
-                [
-                    "Keystone species cycled",
-                    String(sheet.m03Waterfall),
-                ],
-            ],
+            rows: [["Keystone species cycled", String(sheet.m03Waterfall)]],
         },
         {
             title: "M04 - Rainforest Awakening",
             rows: [
-                [
-                    "All (3) keystone species released",
-                    yesNo(sheet.m04Nest),
-                ],
-                [
-                    "All (2) resources released",
-                    yesNo(sheet.m04Hollow),
-                ],
+                ["All (3) keystone species released", yesNo(sheet.m04Nest)],
+                ["All (2) resources released", yesNo(sheet.m04Hollow)],
             ],
         },
         {
             title: "M05 - Central Haven",
-            rows: [
-                [
-                    "Scoring objects in Central Haven",
-                    String(sheet.m05Haven),
-                ],
-            ],
+            rows: [["Scoring objects in Central Haven", String(sheet.m05Haven)]],
         },
         {
             title: "Level Up - Invasive Attack",
             rows: [
-                [
-                    "Invasive species added",
-                    String(sheet.luAdded),
-                ],
-                [
-                    "Invasive species contained",
-                    String(sheet.luContained),
-                ],
+                ["Invasive species added", String(sheet.luAdded)],
+                ["Invasive species contained", String(sheet.luContained)],
             ],
         },
         {
             title: "Interference",
-            rows: [
-                [
-                    "Violations",
-                    String(sheet.interference),
-                ],
-            ],
+            rows: [["Violations", String(sheet.interference)]],
         },
         {
             title: "Gracious Professionalism",
@@ -158,10 +112,10 @@ function buildMissions(sheet: Scoresheet): Mission[] {
                     sheet.gp === 2
                         ? "Developing (2)"
                         : sheet.gp === 3
-                            ? "Accomplished (3)"
-                            : sheet.gp === 4
-                                ? "Exceeds (4)"
-                                : String(sheet.gp),
+                          ? "Accomplished (3)"
+                          : sheet.gp === 4
+                            ? "Exceeds (4)"
+                            : String(sheet.gp),
                 ],
             ],
         },
@@ -171,11 +125,9 @@ function buildMissions(sheet: Scoresheet): Mission[] {
 export default function ScoresheetPage() {
     const { id } = useParams();
 
-    const [scoresheet, setScoresheet] =
-        useState<Scoresheet | null>(null);
+    const [scoresheet, setScoresheet] = useState<Scoresheet | null>(null);
 
-    const [team, setTeam] =
-        useState<Team | null>(null);
+    const [team, setTeam] = useState<Team | null>(null);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -190,10 +142,9 @@ export default function ScoresheetPage() {
             setTeam(null);
 
             try {
-                const response = await fetch(
-                    `/api/v1/scoresheets/${id}`,
-                    { signal: controller.signal },
-                );
+                const response = await fetch(`/api/v1/scoresheets/${id}`, {
+                    signal: controller.signal,
+                });
 
                 if (!response.ok) {
                     setError(
@@ -216,10 +167,9 @@ export default function ScoresheetPage() {
 
                 setScoresheet(sheet);
 
-                const teamResponse = await fetch(
-                    `/api/v1/teams/${sheet.teamId}`,
-                    { signal: controller.signal },
-                );
+                const teamResponse = await fetch(`/api/v1/teams/${sheet.teamId}`, {
+                    signal: controller.signal,
+                });
 
                 if (teamResponse.ok) {
                     const teamData: {
@@ -233,9 +183,7 @@ export default function ScoresheetPage() {
             } catch (error) {
                 if (!controller.signal.aborted) {
                     console.error(error);
-                    setError(
-                        "Failed to connect to the server.",
-                    );
+                    setError("Failed to connect to the server.");
                 }
             } finally {
                 if (!controller.signal.aborted) {
@@ -266,15 +214,9 @@ export default function ScoresheetPage() {
     if (error || !scoresheet) {
         return (
             <Stack spacing={2} sx={{ py: 3 }}>
-                <Alert severity="error">
-                    {error || "Scoresheet not found."}
-                </Alert>
+                <Alert severity="error">{error || "Scoresheet not found."}</Alert>
 
-                <Button
-                    component={Link}
-                    to="/matches"
-                    startIcon={<ArrowBackIcon />}
-                >
+                <Button component={Link} to="/matches" startIcon={<ArrowBackIcon />}>
                     Back to Matches
                 </Button>
             </Stack>
@@ -283,9 +225,7 @@ export default function ScoresheetPage() {
 
     const missions = buildMissions(scoresheet);
 
-    const submittedAt = new Date(
-        scoresheet.submittedAt,
-    ).toLocaleString("en-AU", {
+    const submittedAt = new Date(scoresheet.submittedAt).toLocaleString("en-AU", {
         dateStyle: "medium",
         timeStyle: "short",
     });
@@ -304,16 +244,11 @@ export default function ScoresheetPage() {
                     }}
                 >
                     <Box>
-                        <Typography
-                            variant="h4"
-                            sx={{ fontWeight: 800 }}
-                        >
+                        <Typography variant="h4" sx={{ fontWeight: 800 }}>
                             Scoresheet
                         </Typography>
 
-                        <Typography color="text.secondary">
-                            Score #{scoresheet.id}
-                        </Typography>
+                        <Typography color="text.secondary">Score #{scoresheet.id}</Typography>
                     </Box>
 
                     <Button
@@ -334,31 +269,21 @@ export default function ScoresheetPage() {
                                 sm: "row",
                             }}
                             spacing={3}
-                         sx={{ justifyContent: "space-between" }}>
+                            sx={{ justifyContent: "space-between" }}
+                        >
                             <Box>
-                                <Typography
-                                    variant="h5"
-                                    sx={{ fontWeight: 800 }}
-                                >
-                                    {team
-                                        ? `Team ${team.number}`
-                                        : `Team ID ${scoresheet.teamId}`}
+                                <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                                    {team ? `Team ${team.number}` : `Team ID ${scoresheet.teamId}`}
                                 </Typography>
 
                                 <Typography color="text.secondary">
-                                    {team?.name ??
-                                        "Team details unavailable"}
+                                    {team?.name ?? "Team details unavailable"}
                                 </Typography>
 
-                                <Typography
-                                    variant="body2"
-                                    sx={{ mt: 1 }}
-                                >
-                                    Match{" "}
-                                    {scoresheet.matchNumber}
+                                <Typography variant="body2" sx={{ mt: 1 }}>
+                                    Match {scoresheet.matchNumber}
                                     {" · "}
-                                    Table{" "}
-                                    {scoresheet.tableNumber}
+                                    Table {scoresheet.tableNumber}
                                 </Typography>
                             </Box>
 
@@ -370,70 +295,44 @@ export default function ScoresheetPage() {
                                     },
                                 }}
                             >
-                                <Typography
-                                    variant="overline"
-                                    color="text.secondary"
-                                >
+                                <Typography variant="overline" color="text.secondary">
                                     Final Score
                                 </Typography>
 
-                                <Typography
-                                    variant="h3"
-                                    sx={{ fontWeight: 900 }}
-                                >
+                                <Typography variant="h3" sx={{ fontWeight: 900 }}>
                                     {scoresheet.totalScore}
                                 </Typography>
 
-                                <Chip
-                                    label="Submitted"
-                                    color="success"
-                                    size="small"
-                                />
+                                <Chip label="Submitted" color="success" size="small" />
                             </Box>
                         </Stack>
                     </CardContent>
                 </Card>
 
                 {missions.map((mission) => (
-                    <Card
-                        key={mission.title}
-                        variant="outlined"
-                    >
+                    <Card key={mission.title} variant="outlined">
                         <CardContent>
-                            <Typography
-                                variant="h6"
-                                sx={{ fontWeight: 800, mb: 1.5 }}
-                            >
+                            <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.5 }}>
                                 {mission.title}
                             </Typography>
 
-                            <Stack
-                                divider={<Divider flexItem />}
-                            >
-                                {mission.rows.map(
-                                    ([label, value]) => (
-                                        <Stack
-                                            key={label}
-                                            direction="row"
-                                            spacing={2}
-                                            sx={{
-                                                py: 1.25,
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                            }}
-                                        >
-                                            <Typography>
-                                                {label}
-                                            </Typography>
+                            <Stack divider={<Divider flexItem />}>
+                                {mission.rows.map(([label, value]) => (
+                                    <Stack
+                                        key={label}
+                                        direction="row"
+                                        spacing={2}
+                                        sx={{
+                                            py: 1.25,
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Typography>{label}</Typography>
 
-                                            <Typography
-                                                sx={{ fontWeight: 700 }}
-                                            >
-                                                {value}
-                                            </Typography>
-                                        </Stack>
-                                    ),
-                                )}
+                                        <Typography sx={{ fontWeight: 700 }}>{value}</Typography>
+                                    </Stack>
+                                ))}
                             </Stack>
                         </CardContent>
                     </Card>
@@ -441,16 +340,11 @@ export default function ScoresheetPage() {
 
                 <Card variant="outlined">
                     <CardContent>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                        >
+                        <Typography variant="body2" color="text.secondary">
                             Submitted at
                         </Typography>
 
-                        <Typography sx={{ fontWeight: 600 }}>
-                            {submittedAt}
-                        </Typography>
+                        <Typography sx={{ fontWeight: 600 }}>{submittedAt}</Typography>
                     </CardContent>
                 </Card>
             </Stack>

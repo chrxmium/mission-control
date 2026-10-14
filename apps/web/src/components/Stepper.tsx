@@ -1,10 +1,4 @@
-import {
-    Box,
-    IconButton,
-    Stack,
-    TextField,
-    Typography,
-} from "@mui/material";
+import { Box, IconButton, Stack, TextField, Typography } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -17,38 +11,21 @@ type StepperProps = {
     max?: number;
 };
 
-function validateNumber(
-    value: number,
-    max?: number,
-) {
+function validateNumber(value: number, max?: number) {
     if (!Number.isFinite(value)) return 0;
     if (!Number.isInteger(value)) return 0;
     if (value < 0) return 0;
 
-    if (
-        max !== undefined &&
-        value > max
-    ) {
+    if (max !== undefined && value > max) {
         return 0;
     }
 
     return value;
 }
 
-export default function Stepper({
-                                    label,
-                                    description,
-                                    value,
-                                    onChange,
-                                    max,
-                                }: StepperProps) {
+export default function Stepper({ label, description, value, onChange, max }: StepperProps) {
     const commitValue = (raw: string) => {
-        onChange(
-            validateNumber(
-                Number(raw),
-                max,
-            ),
-        );
+        onChange(validateNumber(Number(raw), max));
     };
 
     return (
@@ -78,16 +55,10 @@ export default function Stepper({
                     minWidth: 0,
                 }}
             >
-                <Typography sx={{ fontWeight: 600 }}>
-                    {label}
-                </Typography>
+                <Typography sx={{ fontWeight: 600 }}>{label}</Typography>
 
                 {description && (
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 0.25 }}
-                    >
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
                         {description}
                     </Typography>
                 )}
@@ -104,14 +75,7 @@ export default function Stepper({
                 <IconButton
                     aria-label={`Decrease ${label}`}
                     disabled={value <= 0}
-                    onClick={() =>
-                        onChange(
-                            Math.max(
-                                0,
-                                value - 1,
-                            ),
-                        )
-                    }
+                    onClick={() => onChange(Math.max(0, value - 1))}
                     sx={{
                         width: 52,
                         height: 52,
@@ -139,8 +103,7 @@ export default function Stepper({
                         },
                     }}
                     onChange={(event) => {
-                        const parsed =
-                            Number(event.target.value);
+                        const parsed = Number(event.target.value);
 
                         if (Number.isFinite(parsed)) {
                             onChange(parsed);
@@ -151,8 +114,7 @@ export default function Stepper({
                     }}
                     onKeyDown={(event) => {
                         if (event.key === "Enter") {
-                            const input =
-                                event.target as HTMLInputElement;
+                            const input = event.target as HTMLInputElement;
 
                             commitValue(input.value);
                             input.blur();
@@ -163,15 +125,9 @@ export default function Stepper({
 
                 <IconButton
                     aria-label={`Increase ${label}`}
-                    disabled={
-                        max !== undefined &&
-                        value >= max
-                    }
+                    disabled={max !== undefined && value >= max}
                     onClick={() => {
-                        if (
-                            max === undefined ||
-                            value < max
-                        ) {
+                        if (max === undefined || value < max) {
                             onChange(value + 1);
                         }
                     }}

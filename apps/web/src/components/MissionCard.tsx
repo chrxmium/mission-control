@@ -1,11 +1,6 @@
 import type { ReactNode } from "react";
 
-import {
-    Box,
-    Card,
-    CardContent,
-    Typography,
-} from "@mui/material";
+import { Box, Card, CardContent, Typography } from "@mui/material";
 
 type MissionCardProps = {
     title: string;
@@ -14,29 +9,17 @@ type MissionCardProps = {
     children: ReactNode;
 };
 
-export default function MissionCard({
-                                        title,
-                                        description,
-                                        note,
-                                        children,
-                                    }: MissionCardProps) {
+export default function MissionCard({ title, description, note, children }: MissionCardProps) {
     return (
         <Card variant="outlined">
             <CardContent>
                 <Box sx={{ mb: 1.5 }}>
-                    <Typography
-                        variant="h6"
-                        sx={{ fontWeight: 800 }}
-                    >
+                    <Typography variant="h6" sx={{ fontWeight: 800 }}>
                         {title}
                     </Typography>
 
                     {description && (
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mt: 0.5 }}
-                        >
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                             {description}
                         </Typography>
                     )}

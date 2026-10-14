@@ -1,10 +1,4 @@
-import {
-    Box,
-    Stack,
-    ToggleButton,
-    ToggleButtonGroup,
-    Typography,
-} from "@mui/material";
+import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 
 type YesNoProps = {
     label: string;
@@ -13,12 +7,7 @@ type YesNoProps = {
     onChange: (value: boolean) => void;
 };
 
-export default function YesNo({
-                                  label,
-                                  description,
-                                  value,
-                                  onChange,
-                              }: YesNoProps) {
+export default function YesNo({ label, description, value, onChange }: YesNoProps) {
     return (
         <Stack
             direction={{
@@ -46,16 +35,10 @@ export default function YesNo({
                     minWidth: 0,
                 }}
             >
-                <Typography sx={{ fontWeight: 600 }}>
-                    {label}
-                </Typography>
+                <Typography sx={{ fontWeight: 600 }}>{label}</Typography>
 
                 {description && (
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mt: 0.25 }}
-                    >
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
                         {description}
                     </Typography>
                 )}
@@ -90,12 +73,9 @@ export default function YesNo({
                             borderRadius: "50%",
                             border: 2,
 
-                            bgcolor: !value
-                                ? "currentColor"
-                                : "transparent",
+                            bgcolor: !value ? "currentColor" : "transparent",
                         }}
                     />
-
                     No
                 </ToggleButton>
 
@@ -114,12 +94,9 @@ export default function YesNo({
                             borderRadius: "50%",
                             border: 2,
 
-                            bgcolor: value
-                                ? "currentColor"
-                                : "transparent",
+                            bgcolor: value ? "currentColor" : "transparent",
                         }}
                     />
-
                     Yes
                 </ToggleButton>
             </ToggleButtonGroup>

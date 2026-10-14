@@ -1,35 +1,19 @@
-import {
-    StrictMode,
-    useMemo,
-    useState,
-} from "react";
+import { StrictMode, useMemo, useState } from "react";
 
 import { createRoot } from "react-dom/client";
 
-import {
-    CssBaseline,
-    ThemeProvider,
-    useMediaQuery,
-} from "@mui/material";
+import { CssBaseline, ThemeProvider, useMediaQuery } from "@mui/material";
 
 import { HashRouter } from "react-router-dom";
 
 import App from "./App";
 
-import {
-    createAppTheme,
-    type ThemeMode,
-} from "./theme";
+import { createAppTheme, type ThemeMode } from "./theme";
 
 function getSavedThemeMode(): ThemeMode {
-    const saved =
-        localStorage.getItem("theme-mode");
+    const saved = localStorage.getItem("theme-mode");
 
-    if (
-        saved === "light" ||
-        saved === "dark" ||
-        saved === "system"
-    ) {
+    if (saved === "light" || saved === "dark" || saved === "system") {
         return saved;
     }
 
@@ -37,44 +21,20 @@ function getSavedThemeMode(): ThemeMode {
 }
 
 function Root() {
-    const systemDark = useMediaQuery(
-        "(prefers-color-scheme: dark)",
-        {
-            noSsr: true,
-        },
-    );
+    const systemDark = useMediaQuery("(prefers-color-scheme: dark)", {
+        noSsr: true,
+    });
 
-    const [
-        themeMode,
-        setThemeMode,
-    ] = useState<ThemeMode>(
-        getSavedThemeMode,
-    );
+    const [themeMode, setThemeMode] = useState<ThemeMode>(getSavedThemeMode);
 
-    const resolvedMode =
-        themeMode === "system"
-            ? systemDark
-                ? "dark"
-                : "light"
-            : themeMode;
+    const resolvedMode = themeMode === "system" ? (systemDark ? "dark" : "light") : themeMode;
 
-    const theme = useMemo(
-        () =>
-            createAppTheme(
-                resolvedMode,
-            ),
-        [resolvedMode],
-    );
+    const theme = useMemo(() => createAppTheme(resolvedMode), [resolvedMode]);
 
-    const changeThemeMode = (
-        mode: ThemeMode,
-    ) => {
+    const changeThemeMode = (mode: ThemeMode) => {
         setThemeMode(mode);
 
-        localStorage.setItem(
-            "theme-mode",
-            mode,
-        );
+        localStorage.setItem("theme-mode", mode);
     };
 
     return (
@@ -82,22 +42,13 @@ function Root() {
             <CssBaseline />
 
             <HashRouter>
-                <App
-                    themeMode={
-                        themeMode
-                    }
-                    onThemeModeChange={
-                        changeThemeMode
-                    }
-                />
+                <App themeMode={themeMode} onThemeModeChange={changeThemeMode} />
             </HashRouter>
         </ThemeProvider>
     );
 }
 
-createRoot(
-    document.getElementById("root")!,
-).render(
+createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <Root />
     </StrictMode>,
