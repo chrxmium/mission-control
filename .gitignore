@@ -75,3 +75,9 @@ Thumbs.db
 # PWA / generated service worker files
 apps/web/static/sw.js
 apps/web/static/workbox-*.js
+
+# Local Docker development
+.env
+.env.*
+!.env.example
+.local-data/
