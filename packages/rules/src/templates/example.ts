@@ -1,4 +1,4 @@
-import type { ScoresheetTemplate } from "../template";
+import type { ScoresheetTemplate } from "../template.js";
 
 export const exampleTemplate: ScoresheetTemplate = {
     id: "example-competition",
