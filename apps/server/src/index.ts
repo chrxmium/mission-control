@@ -13,21 +13,20 @@ import { Hono } from "hono";
 import type { MiddlewareHandler } from "hono";
 import { cors } from "hono/cors";
 
-import { score } from "../../../packages/rules/src/score";
-import type { ScoreSheet } from "../../../packages/rules/src/types";
+import { score, type ScoreSheet } from "@mission-control/rules";
 
-import { db } from "./db";
+import { db } from "./db/index.js";
 import {
     matches,
     scoresheets,
     teams,
-} from "./db/schema";
+} from "./db/schema.js";
 
 import {
     createSession,
     verifyPassword,
     verifySession,
-} from "./auth";
+} from "./auth.js";
 
 const app = new Hono();
 

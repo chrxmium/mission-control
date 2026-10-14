@@ -1,4 +1,4 @@
-import type { ScoreSheet } from "../../../../packages/rules/src/types.ts";
+import type { ScoreSheet } from "@mission-control/rules";
 
 export const createDefaultScoreSheet = (): ScoreSheet => ({
     m01_young_forest: 0,
