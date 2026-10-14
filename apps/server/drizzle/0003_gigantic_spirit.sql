@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX `scoresheets_team_match_unique` ON `scoresheets` (`team_id`,`match_number`);
