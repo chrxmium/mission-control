@@ -18,8 +18,7 @@ import NumberChoices from "../components/NumberChoices";
 import Stepper from "../components/Stepper";
 import YesNo from "../components/YesNo";
 
-import { score } from "../../../../packages/rules/src/score.ts";
-import type { ScoreSheet } from "../../../../packages/rules/src/types.ts";
+import { score, type ScoreSheet } from "@mission-control/rules";
 
 type Team = {
     id: number;

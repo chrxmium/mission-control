@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
-import { score } from "./score";
-import type { ScoreSheet } from "./types";
+import { score } from "./score.js";
+import type { ScoreSheet } from "./types.js";
 
 const baseSheet: ScoreSheet = {
     m01_young_forest: 3,

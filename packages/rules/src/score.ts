@@ -1,4 +1,4 @@
-import type { ScoreSheet } from "./types";
+import type { ScoreSheet } from "./types.js";
 
 export function score(sheet: ScoreSheet): number {
     let total = 0;

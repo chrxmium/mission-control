@@ -1,5 +1,4 @@
-import { score } from "../../../../packages/rules/src/score.ts";
-import type { ScoreSheet } from "../../../../packages/rules/src/types.ts";
+import { score, type ScoreSheet } from "@mission-control/rules";
 
 export type ParticipationStatus = "playing" | "no_show";
 
