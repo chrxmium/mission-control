@@ -33,6 +33,9 @@ jobs:
             - name: Run scoring tests
               run: npm run test --workspace=@mission-control/rules
 
+            - name: Build shared rules
+              run: npm run build --workspace=@mission-control/rules
+
             - name: Build backend
               run: npm run build --workspace=@mission-control/server
 
