@@ -4,7 +4,6 @@ import { serve } from "@hono/node-server";
 import { avg, count, desc, eq, max } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { Hono } from "hono";
-import type { MiddlewareHandler } from "hono";
 import { cors } from "hono/cors";
 
 import { score, type ScoreSheet } from "@mission-control/rules";
@@ -12,7 +11,9 @@ import { score, type ScoreSheet } from "@mission-control/rules";
 import { db } from "./db/index.js";
 import { matches, scoresheets, teams } from "./db/schema.js";
 
-import { createSession, verifyPassword, verifySession } from "./auth.js";
+import { createSession, verifyPassword } from "./auth.js";
+import { requireAdmin } from "./middleware/admin-auth.js";
+import { requireSession } from "./middleware/referee-auth.js";
 
 const app = new Hono();
 
@@ -228,43 +229,6 @@ const isSqliteUniqueConstraintError = (error: unknown) =>
     error !== null &&
     "code" in error &&
     error.code === "SQLITE_CONSTRAINT_UNIQUE";
-
-const adminToken = process.env.ADMIN_TOKEN;
-
-if (!adminToken) {
-    throw new Error("ADMIN_TOKEN is not set");
-}
-
-const requireAdmin: MiddlewareHandler = async (c, next) => {
-    const authorisation = c.req.header("Authorization");
-
-    if (authorisation !== `Bearer ${adminToken}`) {
-        return c.json(
-            {
-                error: "Unauthorised",
-            },
-            401,
-        );
-    }
-
-    await next();
-};
-
-const requireSession: MiddlewareHandler = async (c, next) => {
-    const authorisation = c.req.header("Authorization");
-
-    if (!authorisation?.startsWith("Bearer ")) {
-        return c.json({ error: "Unauthorised" }, 401);
-    }
-
-    const token = authorisation.slice(7);
-
-    if (!verifySession(token)) {
-        return c.json({ error: "Invalid or expired session" }, 401);
-    }
-
-    await next();
-};
 
 // GET endpoint requests
 
