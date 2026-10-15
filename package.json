@@ -7,7 +7,8 @@
         "dev": "npm --prefix apps/web run dev",
         "test:score": "tsx packages/rules/src/score.test.ts",
         "format": "oxfmt",
-        "format:check": "oxfmt --check"
+        "format:check": "oxfmt --check",
+        "build": "npm run build --workspace=@mission-control/rules && npm run build --workspace=@mission-control/server && npm run build --workspace=@mission-control/web"
     },
     "repository": {
         "type": "git",
