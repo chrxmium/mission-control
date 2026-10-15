@@ -15,7 +15,9 @@ services:
             - ${DATA_DIR}:/data
 
         networks:
-            - internal
+            internal:
+                aliases:
+                    - mission-control-api
 
     web:
         build:
