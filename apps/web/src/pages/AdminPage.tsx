@@ -1,4 +1,5 @@
 import {
+    Alert,
     Box,
     Button,
     Card,
@@ -45,6 +46,10 @@ const recentScores = [
 export default function AdminPage() {
     return (
         <Box sx={{ py: 3 }}>
+            <Alert severity="warning" sx={{ mb: 3 }}>
+                <strong>Work in Progress</strong> - The administrator dashboard is currently under
+                development. Some features may be incomplete or unavailable.
+            </Alert>
             <Stack
                 direction={{
                     xs: "column",
