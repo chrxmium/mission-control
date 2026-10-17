@@ -7,12 +7,12 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 import { db } from "./db/index.js";
-import { matches, scoresheets, teams } from "./db/schema.js";
+import { matches, scoresheets } from "./db/schema.js";
 
 import { createSession, verifyPassword } from "./auth.js";
-import { requireAdmin } from "./middleware/admin-auth.js";
 import { requireSession } from "./middleware/referee-auth.js";
 import { buildScoresheetValues, prepareScoresheet } from "./services/scoring.js";
+import { isSqliteUniqueConstraintError } from "./utils/sqlite.js";
 import { healthRoutes } from "./routes/health.js";
 import { teamsRoutes } from "./routes/teams.js";
 import { scoresheetsRoutes } from "./routes/scoresheets.js";
@@ -30,12 +30,6 @@ app.use(
     }),
 );
 
-const isSqliteUniqueConstraintError = (error: unknown) =>
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "SQLITE_CONSTRAINT_UNIQUE";
-
 // GET endpoint requests
 
 app.route("/health", healthRoutes);
@@ -45,240 +39,6 @@ app.route("/api/v1/rankings", rankingsRoutes);
 app.route("/api/v1/matches", matchesRoutes);
 
 // POST endpoint requests
-
-app.post("/api/v1/teams", requireAdmin, async (c) => {
-    const body = await c.req.json();
-
-    if (
-        typeof body.number !== "number" ||
-        !Number.isInteger(body.number) ||
-        body.number <= 0 ||
-        typeof body.name !== "string" ||
-        body.name.trim().length <= 0
-    ) {
-        return c.json(
-            {
-                error: "Invalid request body",
-            },
-            400,
-        );
-    }
-
-    try {
-        const newTeam = db
-            .insert(teams)
-            .values({
-                number: body.number,
-                name: body.name.trim(),
-            })
-            .returning()
-            .get();
-
-        return c.json(
-            {
-                team: newTeam,
-            },
-            201,
-        );
-    } catch (error) {
-        console.error(error);
-
-        return c.json(
-            {
-                error: "Team number already exists",
-            },
-            409,
-        );
-    }
-});
-
-app.post("/api/v1/scoresheets", requireAdmin, async (c) => {
-    const body = await c.req.json();
-
-    const prepared = prepareScoresheet(body);
-
-    if (!prepared.ok) {
-        return c.json(
-            {
-                error: prepared.error,
-            },
-            prepared.status,
-        );
-    }
-
-    const { data, sheet, totalScore } = prepared;
-
-    try {
-        const newScoresheet = db
-            .insert(scoresheets)
-            .values({
-                ...buildScoresheetValues(data, sheet, totalScore),
-
-                submittedAt: new Date().toISOString(),
-            })
-            .returning()
-            .get();
-
-        return c.json(
-            {
-                scoresheet: newScoresheet,
-            },
-            201,
-        );
-    } catch (error) {
-        if (isSqliteUniqueConstraintError(error)) {
-            return c.json(
-                {
-                    error: "Scoresheet already exists for this team and match",
-                },
-                409,
-            );
-        }
-
-        console.error(error);
-
-        return c.json(
-            {
-                error: "Failed to save scoresheet",
-            },
-            500,
-        );
-    }
-});
-
-app.patch("/api/v1/scoresheets/:id", requireAdmin, async (c) => {
-    const id = Number(c.req.param("id"));
-
-    // existing ID / existence checks
-
-    const body = await c.req.json();
-
-    const prepared = prepareScoresheet(body);
-
-    if (!prepared.ok) {
-        return c.json(
-            {
-                error: prepared.error,
-            },
-            prepared.status,
-        );
-    }
-
-    const { data, sheet, totalScore } = prepared;
-
-    try {
-        const updatedScoresheet = db
-            .update(scoresheets)
-            .set(buildScoresheetValues(data, sheet, totalScore))
-            .where(eq(scoresheets.id, id))
-            .returning()
-            .get();
-
-        return c.json({
-            scoresheet: updatedScoresheet,
-        });
-    } catch (error) {
-        if (isSqliteUniqueConstraintError(error)) {
-            return c.json(
-                {
-                    error: "Scoresheet already exists for this team and match",
-                },
-                409,
-            );
-        }
-
-        console.error(error);
-
-        return c.json(
-            {
-                error: "Failed to save scoresheet",
-            },
-            500,
-        );
-    }
-});
-
-app.post("/api/v1/matches", requireAdmin, async (c) => {
-    const body = await c.req.json();
-
-    if (
-        typeof body.matchNumber !== "number" ||
-        !Number.isInteger(body.matchNumber) ||
-        body.matchNumber <= 0
-    ) {
-        return c.json({ error: "Invalid match number" }, 400);
-    }
-
-    if (typeof body.team1Id !== "number" || !Number.isInteger(body.team1Id) || body.team1Id <= 0) {
-        return c.json({ error: "Invalid team 1 ID" }, 400);
-    }
-
-    const team2Id = body.team2Id ?? null;
-
-    if (
-        team2Id !== null &&
-        (typeof team2Id !== "number" || !Number.isInteger(team2Id) || team2Id <= 0)
-    ) {
-        return c.json({ error: "Invalid team 2 ID" }, 400);
-    }
-
-    if (team2Id === body.team1Id) {
-        return c.json(
-            {
-                error: "A team cannot play against itself",
-            },
-            400,
-        );
-    }
-
-    const firstTeam = db.select().from(teams).where(eq(teams.id, body.team1Id)).get();
-
-    if (!firstTeam) {
-        return c.json({ error: "Team 1 not found" }, 404);
-    }
-
-    if (team2Id !== null) {
-        const secondTeam = db.select().from(teams).where(eq(teams.id, team2Id)).get();
-
-        if (!secondTeam) {
-            return c.json({ error: "Team 2 not found" }, 404);
-        }
-    }
-
-    const scheduledAt =
-        typeof body.scheduledAt === "string" && body.scheduledAt.trim() !== ""
-            ? body.scheduledAt
-            : null;
-
-    try {
-        const created = db
-            .insert(matches)
-            .values({
-                matchNumber: body.matchNumber,
-                team1Id: body.team1Id,
-                team2Id,
-                scheduledAt,
-                status: "upcoming",
-            })
-            .returning()
-            .get();
-
-        return c.json({ match: created }, 201);
-    } catch (error) {
-        if (isSqliteUniqueConstraintError(error)) {
-            return c.json(
-                {
-                    error: "Match number already exists",
-                },
-                409,
-            );
-        }
-
-        console.error(error);
-
-        return c.json({ error: "Failed to create match" }, 500);
-    }
-});
 
 app.post("/api/v1/matches/:id/submit", requireSession, async (c) => {
     const matchId = Number(c.req.param("id"));
