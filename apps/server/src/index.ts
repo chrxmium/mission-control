@@ -2,8 +2,7 @@ import "dotenv/config";
 
 import { type ScoreSheet } from "@mission-control/rules";
 import { serve } from "@hono/node-server";
-import { avg, count, desc, eq, max } from "drizzle-orm";
-import { alias } from "drizzle-orm/sqlite-core";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
@@ -14,11 +13,13 @@ import { createSession, verifyPassword } from "./auth.js";
 import { requireAdmin } from "./middleware/admin-auth.js";
 import { requireSession } from "./middleware/referee-auth.js";
 import { buildScoresheetValues, prepareScoresheet } from "./services/scoring.js";
+import { healthRoutes } from "./routes/health.js";
+import { teamsRoutes } from "./routes/teams.js";
+import { scoresheetsRoutes } from "./routes/scoresheets.js";
+import { rankingsRoutes } from "./routes/rankings.js";
+import { matchesRoutes } from "./routes/matches.js";
 
 const app = new Hono();
-
-const team1 = alias(teams, "team1");
-const team2 = alias(teams, "team2");
 
 app.use(
     "/api/*",
@@ -37,151 +38,11 @@ const isSqliteUniqueConstraintError = (error: unknown) =>
 
 // GET endpoint requests
 
-app.get("/health", (c) => {
-    return c.json({
-        ok: true,
-    });
-});
-
-app.get("/api/v1/teams", (c) => {
-    const result = db.select().from(teams).all();
-
-    return c.json({
-        teams: result,
-    });
-});
-
-app.get("/api/v1/teams/:id", (c) => {
-    const id = Number(c.req.param("id"));
-
-    const team = db.select().from(teams).where(eq(teams.id, id)).get();
-
-    if (!team) {
-        return c.json(
-            {
-                error: "Team not found",
-            },
-            404,
-        );
-    }
-
-    return c.json({
-        team,
-    });
-});
-
-app.get("/api/v1/scoresheets", (c) => {
-    const result = db.select().from(scoresheets).all();
-
-    return c.json({
-        scoresheets: result,
-    });
-});
-
-app.get("/api/v1/scoresheets/:id", (c) => {
-    const id = Number(c.req.param("id"));
-
-    const scoresheet = db.select().from(scoresheets).where(eq(scoresheets.id, id)).get();
-
-    if (!scoresheet) {
-        return c.json(
-            {
-                error: "Scoresheet not found",
-            },
-            404,
-        );
-    }
-
-    return c.json({
-        scoresheet,
-    });
-});
-
-app.get("/api/v1/rankings", (c) => {
-    const result = db
-        .select({
-            teamId: teams.id,
-            teamNumber: teams.number,
-            teamName: teams.name,
-            matches: count(scoresheets.id),
-            averageScore: avg(scoresheets.totalScore),
-            highScore: max(scoresheets.totalScore),
-        })
-        .from(teams)
-        .leftJoin(scoresheets, eq(teams.id, scoresheets.teamId))
-        .groupBy(teams.id)
-        .orderBy(desc(avg(scoresheets.totalScore)))
-        .all();
-
-    const rankings = result.map((team, index) => ({
-        rank: team.matches > 0 ? index + 1 : null,
-
-        teamId: team.teamId,
-
-        teamNumber: team.teamNumber,
-
-        teamName: team.teamName,
-
-        matches: team.matches,
-
-        averageScore: team.averageScore !== null ? Number(team.averageScore) : null,
-
-        highScore: team.highScore,
-    }));
-
-    return c.json({
-        rankings,
-    });
-});
-
-app.get("/api/v1/matches", (c) => {
-    const result = db
-        .select({
-            id: matches.id,
-            matchNumber: matches.matchNumber,
-            scheduledAt: matches.scheduledAt,
-            status: matches.status,
-
-            team1Id: team1.id,
-            team1Number: team1.number,
-            team1Name: team1.name,
-
-            team2Id: team2.id,
-            team2Number: team2.number,
-            team2Name: team2.name,
-        })
-        .from(matches)
-        .innerJoin(team1, eq(matches.team1Id, team1.id))
-        .leftJoin(team2, eq(matches.team2Id, team2.id))
-        .orderBy(matches.matchNumber)
-        .all();
-
-    const formatted = result.map((match) => ({
-        id: match.id,
-        matchNumber: match.matchNumber,
-        scheduledAt: match.scheduledAt,
-        status: match.status,
-
-        team1: {
-            id: match.team1Id,
-            number: match.team1Number,
-            name: match.team1Name,
-        },
-
-        team2:
-            match.team2Id === null
-                ? null
-                : {
-                      id: match.team2Id,
-                      number: match.team2Number,
-                      name: match.team2Name,
-                  },
-    }));
-
-    return c.json({
-        matches: formatted,
-    });
-});
+app.route("/health", healthRoutes);
+app.route("/api/v1/teams", teamsRoutes);
+app.route("/api/v1/scoresheets", scoresheetsRoutes);
+app.route("/api/v1/rankings", rankingsRoutes);
+app.route("/api/v1/matches", matchesRoutes);
 
 // POST endpoint requests
 
