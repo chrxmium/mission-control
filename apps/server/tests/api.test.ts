@@ -66,6 +66,19 @@ try {
     check("Health endpoint", health.status, 200);
     check("Health response", health.body.ok, true);
 
+    for (const body of [
+        {},
+        { password: null },
+        { password: 12345 },
+        { password: true },
+        { password: [] },
+    ]) {
+        const result = await request("POST", "/api/v1/auth/login", body);
+
+        check("Reject invalid login input", result.status, 400);
+        check("Preserve login validation error", result.body.error, "Invalid request");
+    }
+
     const invalidLogin = await request("POST", "/api/v1/auth/login", {
         password: "wrong-password",
     });
