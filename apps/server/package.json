@@ -8,7 +8,8 @@
         "build": "tsc",
         "start": "node dist/apps/server/src/index.js",
         "db:generate": "drizzle-kit generate",
-        "db:migrate": "drizzle-kit migrate"
+        "db:migrate": "drizzle-kit migrate",
+        "test:api": "tsx tests/api.test.ts"
     },
     "repository": {
         "type": "git",
