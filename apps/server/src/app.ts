@@ -21,11 +21,14 @@ app.use(
 
 // GET endpoint requests
 
-app.route("/health", healthRoutes);
-app.route("/api/v1/teams", teamsRoutes);
-app.route("/api/v1/scoresheets", scoresheetsRoutes);
-app.route("/api/v1/rankings", rankingsRoutes);
-app.route("/api/v1/matches", matchesRoutes);
-app.route("/api/v1/auth", authRoutes);
+export const routes = app
+    .route("/health", healthRoutes)
+    .route("/api/v1/teams", teamsRoutes)
+    .route("/api/v1/scoresheets", scoresheetsRoutes)
+    .route("/api/v1/rankings", rankingsRoutes)
+    .route("/api/v1/matches", matchesRoutes)
+    .route("/api/v1/auth", authRoutes);
+
+export type AppType = typeof routes;
 
 // POST endpoint requests
