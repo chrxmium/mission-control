@@ -20,35 +20,16 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
-type Team = {
-    id: number;
-    number: number;
-    name: string;
-};
+import type { InferResponseType } from "hono/client";
+import { api } from "../lib/api.js";
 
-type Match = {
-    id: number;
-    matchNumber: number;
-    scheduledAt: string | null;
-    status: string;
-    team1: Team;
-    team2: Team | null;
-};
+type MatchesResponse = InferResponseType<typeof api.api.v1.matches.$get, 200>;
 
-type Scoresheet = {
-    id: number;
-    teamId: number;
-    matchNumber: number;
-    totalScore: number;
-};
+type ScoresheetsResponse = InferResponseType<typeof api.api.v1.scoresheets.$get, 200>;
 
-type MatchesResponse = {
-    matches: Match[];
-};
-
-type ScoresheetsResponse = {
-    scoresheets: Scoresheet[];
-};
+type Match = MatchesResponse["matches"][number];
+type Team = Match["team1"];
+type Scoresheet = ScoresheetsResponse["scoresheets"][number];
 
 export default function MatchesPage() {
     const navigate = useNavigate();
@@ -67,8 +48,8 @@ export default function MatchesPage() {
 
         try {
             const [matchesResponse, scoresheetsResponse] = await Promise.all([
-                fetch("/api/v1/matches"),
-                fetch("/api/v1/scoresheets"),
+                api.api.v1.matches.$get(),
+                api.api.v1.scoresheets.$get(),
             ]);
 
             if (!matchesResponse.ok) {
@@ -79,9 +60,9 @@ export default function MatchesPage() {
                 throw new Error(`Failed to load scoresheets (${scoresheetsResponse.status})`);
             }
 
-            const matchesData: MatchesResponse = await matchesResponse.json();
+            const matchesData = await matchesResponse.json();
 
-            const scoresheetsData: ScoresheetsResponse = await scoresheetsResponse.json();
+            const scoresheetsData = await scoresheetsResponse.json();
 
             setMatches(matchesData.matches);
             setScoresheets(scoresheetsData.scoresheets);
