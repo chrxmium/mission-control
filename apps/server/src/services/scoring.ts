@@ -1,87 +1,14 @@
+import * as v from "valibot";
 import { eq } from "drizzle-orm";
 import { score, type ScoreSheet } from "@mission-control/rules";
 
 import { db } from "../db/index.js";
 import { teams } from "../db/schema.js";
-
-const isIntegerInRange = (value: unknown, max?: number) => {
-    if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
-        return false;
-    }
-
-    return !(max !== undefined && value > max);
-};
-
-type ScoresheetBody = {
-    teamId: number;
-    matchNumber: number;
-    tableNumber: number;
-
-    m01_young_forest: number;
-    m01_grand_tree: number;
-    m01_hollow_tree: number;
-    m01_queen_knocked_down: boolean;
-
-    m02_base: number;
-    m02_canopy: number;
-
-    m03_waterfall: number;
-
-    m04_nest: boolean;
-    m04_hollow: boolean;
-
-    m05_haven: number;
-
-    lu_added: number;
-    lu_contained: number;
-
-    interference: number;
-
-    gp: 2 | 3 | 4;
-};
-
-const validateScoresheetBody = (body: unknown): string | null => {
-    if (typeof body !== "object" || body === null) {
-        return "Invalid scoresheet body";
-    }
-
-    const data = body as Record<string, unknown>;
-
-    if (
-        typeof data.teamId !== "number" ||
-        !Number.isInteger(data.teamId) ||
-        data.teamId <= 0 ||
-        typeof data.matchNumber !== "number" ||
-        !Number.isInteger(data.matchNumber) ||
-        data.matchNumber <= 0 ||
-        typeof data.tableNumber !== "number" ||
-        !Number.isInteger(data.tableNumber) ||
-        data.tableNumber <= 0
-    ) {
-        return "Invalid scoresheet metadata";
-    }
-
-    if (
-        !isIntegerInRange(data.m01_young_forest, 3) ||
-        !isIntegerInRange(data.m01_grand_tree, 3) ||
-        !isIntegerInRange(data.m01_hollow_tree, 3) ||
-        typeof data.m01_queen_knocked_down !== "boolean" ||
-        !isIntegerInRange(data.m02_base) ||
-        !isIntegerInRange(data.m02_canopy, 15) ||
-        !isIntegerInRange(data.m03_waterfall, 50) ||
-        typeof data.m04_nest !== "boolean" ||
-        typeof data.m04_hollow !== "boolean" ||
-        !isIntegerInRange(data.m05_haven) ||
-        !isIntegerInRange(data.lu_added, 5) ||
-        !isIntegerInRange(data.lu_contained) ||
-        !isIntegerInRange(data.interference) ||
-        ![2, 3, 4].includes(data.gp as number)
-    ) {
-        return "Invalid scoresheet data";
-    }
-
-    return null;
-};
+import {
+    scoresheetMetadataSchema,
+    scoresheetSchema,
+    type ScoresheetBody,
+} from "../validators/scoresheets.js";
 
 const buildScoreSheet = (body: ScoresheetBody): ScoreSheet => ({
     m01_young_forest: body.m01_young_forest,
@@ -169,17 +96,35 @@ type PreparedScoresheet =
       };
 
 export const prepareScoresheet = (body: unknown): PreparedScoresheet => {
-    const validationError = validateScoresheetBody(body);
-
-    if (validationError) {
+    if (typeof body !== "object" || body === null) {
         return {
             ok: false,
-            error: validationError,
+            error: "Invalid scoresheet body",
             status: 400,
         };
     }
 
-    const data = body as ScoresheetBody;
+    const metadata = v.safeParse(scoresheetMetadataSchema, body);
+
+    if (!metadata.success) {
+        return {
+            ok: false,
+            error: "Invalid scoresheet metadata",
+            status: 400,
+        };
+    }
+
+    const parsed = v.safeParse(scoresheetSchema, body);
+
+    if (!parsed.success) {
+        return {
+            ok: false,
+            error: "Invalid scoresheet data",
+            status: 400,
+        };
+    }
+
+    const data = parsed.output;
 
     const team = db.select().from(teams).where(eq(teams.id, data.teamId)).get();
 

@@ -179,6 +179,52 @@ try {
         },
     };
 
+    const invalidScoresheets = [
+        { ...emptySheet, m01_young_forest: 4 },
+        { ...emptySheet, m02_canopy: 16 },
+        { ...emptySheet, m03_waterfall: 51 },
+        { ...emptySheet, lu_added: 6 },
+        { ...emptySheet, interference: -1 },
+        { ...emptySheet, gp: 5 },
+        { ...emptySheet, m04_nest: 1 },
+    ];
+
+    for (const sheet of invalidScoresheets) {
+        const result = await request(
+            "POST",
+            "/api/v1/scoresheets",
+            {
+                ...sheet,
+                teamId: teamIds[0],
+                matchNumber: 999,
+                tableNumber: 1,
+            },
+            adminHeaders,
+        );
+
+        check("Reject invalid mission data", result.status, 400);
+        check("Preserve mission validation error", result.body.error, "Invalid scoresheet data");
+    }
+
+    const invalidMetadata = await request(
+        "POST",
+        "/api/v1/scoresheets",
+        {
+            ...emptySheet,
+            teamId: 0,
+            matchNumber: 999,
+            tableNumber: 1,
+        },
+        adminHeaders,
+    );
+
+    check("Reject invalid scoresheet metadata", invalidMetadata.status, 400);
+    check(
+        "Preserve metadata validation error",
+        invalidMetadata.body.error,
+        "Invalid scoresheet metadata",
+    );
+
     const unauthorisedSubmission = await request(
         "POST",
         `/api/v1/matches/${standardMatch.body.match.id}/submit`,
