@@ -175,7 +175,7 @@ try {
         team2: {
             teamId: teamIds[1],
             participation: "no_show",
-            sheet: emptySheet,
+            sheet: {},
         },
     };
 
@@ -224,6 +224,65 @@ try {
         invalidMetadata.body.error,
         "Invalid scoresheet metadata",
     );
+
+    const invalidSubmissions = [
+        {
+            name: "Invalid table number",
+            body: { ...standardPayload, tableNumber: 0 },
+            error: "Invalid table number",
+        },
+        {
+            name: "Invalid shared M05",
+            body: { ...standardPayload, sharedM05: -1 },
+            error: "Invalid M05 value",
+        },
+        {
+            name: "Invalid Team 1 participation",
+            body: {
+                ...standardPayload,
+                team1: { ...standardPayload.team1, participation: "unknown" },
+            },
+            error: "Invalid Team 1 data",
+        },
+        {
+            name: "Missing Team 2",
+            body: { ...standardPayload, team2: null },
+            error: "Team 2 data is required",
+        },
+        {
+            name: "Mismatched Team 1",
+            body: {
+                ...standardPayload,
+                team1: { ...standardPayload.team1, teamId: teamIds[2] },
+            },
+            error: "Team 1 mismatch",
+        },
+    ];
+
+    for (const test of invalidSubmissions) {
+        const result = await request(
+            "POST",
+            `/api/v1/matches/${standardMatch.body.match.id}/submit`,
+            test.body,
+            refereeHeaders,
+        );
+
+        check(test.name, result.status, 400);
+        check(`${test.name} error`, result.body.error, test.error);
+    }
+
+    const invalidSoloSubmission = await request(
+        "POST",
+        `/api/v1/matches/${soloMatch.body.match.id}/submit`,
+        {
+            ...standardPayload,
+            team1: { ...standardPayload.team1, teamId: teamIds[2] },
+        },
+        refereeHeaders,
+    );
+
+    check("Reject second team in solo match", invalidSoloSubmission.status, 400);
+    check("Preserve solo match error", invalidSoloSubmission.body.error, "This is a solo match");
 
     const unauthorisedSubmission = await request(
         "POST",

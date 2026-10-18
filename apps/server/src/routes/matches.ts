@@ -9,6 +9,12 @@ import { requireAdmin } from "../middleware/admin-auth.js";
 import { db } from "../db/index.js";
 import { matches, scoresheets, teams } from "../db/schema.js";
 import { requireSession } from "../middleware/referee-auth.js";
+import {
+    sharedM05Schema,
+    submittedTeamSchema,
+    submitTableNumberSchema,
+    type SubmittedTeam,
+} from "../validators/matches.js";
 import { buildScoresheetValues, prepareScoresheet } from "../services/scoring.js";
 
 export const matchesRoutes = new Hono();
@@ -157,11 +163,11 @@ matchesRoutes.post("/:id/submit", requireSession, async (c) => {
 
     const { tableNumber, sharedM05, team1, team2 } = body;
 
-    if (!Number.isInteger(tableNumber) || tableNumber <= 0) {
+    if (!v.safeParse(submitTableNumberSchema, tableNumber).success) {
         return c.json({ error: "Invalid table number" }, 400);
     }
 
-    if (!Number.isInteger(sharedM05) || sharedM05 < 0) {
+    if (!v.safeParse(sharedM05Schema, sharedM05).success) {
         return c.json({ error: "Invalid M05 value" }, 400);
     }
 
@@ -175,27 +181,8 @@ matchesRoutes.post("/:id/submit", requireSession, async (c) => {
         return c.json({ error: "Match has already been submitted" }, 409);
     }
 
-    type SubmittedTeam = {
-        teamId: number;
-        participation: "playing" | "no_show";
-        sheet: ScoreSheet;
-    };
-
-    const isSubmittedTeam = (value: unknown): value is SubmittedTeam => {
-        if (typeof value !== "object" || value === null) {
-            return false;
-        }
-
-        const data = value as Record<string, unknown>;
-
-        return (
-            typeof data.teamId === "number" &&
-            Number.isInteger(data.teamId) &&
-            (data.participation === "playing" || data.participation === "no_show") &&
-            typeof data.sheet === "object" &&
-            data.sheet !== null
-        );
-    };
+    const isSubmittedTeam = (value: unknown): value is SubmittedTeam =>
+        v.safeParse(submittedTeamSchema, value).success;
 
     if (!isSubmittedTeam(team1)) {
         return c.json({ error: "Invalid Team 1 data" }, 400);
