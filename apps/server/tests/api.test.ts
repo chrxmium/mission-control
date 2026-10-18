@@ -90,6 +90,22 @@ try {
 
     const teamIds: number[] = [];
 
+    const invalidTeams = [
+        { number: 0, name: "Invalid" },
+        { number: -1, name: "Invalid" },
+        { number: 1.5, name: "Invalid" },
+        { number: "1001", name: "Invalid" },
+        { number: 1001, name: "" },
+        { number: 1001, name: "   " },
+    ];
+
+    for (const body of invalidTeams) {
+        const result = await request("POST", "/api/v1/teams", body, adminHeaders);
+
+        check("Reject invalid team input", result.status, 400);
+        check("Preserve validation error", result.body.error, "Invalid request body");
+    }
+
     for (const [number, name] of [
         [1001, "Alpha Robotics"],
         [1002, "Beta Robotics"],

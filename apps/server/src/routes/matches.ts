@@ -1,3 +1,5 @@
+import * as v from "valibot";
+import { createMatchSchema } from "../validators/matches.js";
 import { isSqliteUniqueConstraintError } from "../utils/sqlite.js";
 import type { ScoreSheet } from "@mission-control/rules";
 import { eq } from "drizzle-orm";
@@ -64,30 +66,25 @@ matchesRoutes.get("/", (c) => {
 });
 
 matchesRoutes.post("/", requireAdmin, async (c) => {
-    const body = await c.req.json();
+    const body = await c.req.json().catch(() => null);
+    const parsed = v.safeParse(createMatchSchema, body);
 
-    if (
-        typeof body.matchNumber !== "number" ||
-        !Number.isInteger(body.matchNumber) ||
-        body.matchNumber <= 0
-    ) {
-        return c.json({ error: "Invalid match number" }, 400);
+    if (!parsed.success) {
+        const invalidField = parsed.issues[0]?.path?.[0]?.key;
+
+        const errors: Record<string, string> = {
+            matchNumber: "Invalid match number",
+            team1Id: "Invalid team 1 ID",
+            team2Id: "Invalid team 2 ID",
+        };
+
+        return c.json({ error: errors[String(invalidField)] ?? "Invalid request body" }, 400);
     }
 
-    if (typeof body.team1Id !== "number" || !Number.isInteger(body.team1Id) || body.team1Id <= 0) {
-        return c.json({ error: "Invalid team 1 ID" }, 400);
-    }
+    const data = parsed.output;
+    const team2Id = data.team2Id ?? null;
 
-    const team2Id = body.team2Id ?? null;
-
-    if (
-        team2Id !== null &&
-        (typeof team2Id !== "number" || !Number.isInteger(team2Id) || team2Id <= 0)
-    ) {
-        return c.json({ error: "Invalid team 2 ID" }, 400);
-    }
-
-    if (team2Id === body.team1Id) {
+    if (team2Id === data.team1Id) {
         return c.json(
             {
                 error: "A team cannot play against itself",
@@ -96,7 +93,7 @@ matchesRoutes.post("/", requireAdmin, async (c) => {
         );
     }
 
-    const firstTeam = db.select().from(teams).where(eq(teams.id, body.team1Id)).get();
+    const firstTeam = db.select().from(teams).where(eq(teams.id, data.team1Id)).get();
 
     if (!firstTeam) {
         return c.json({ error: "Team 1 not found" }, 404);
@@ -111,16 +108,16 @@ matchesRoutes.post("/", requireAdmin, async (c) => {
     }
 
     const scheduledAt =
-        typeof body.scheduledAt === "string" && body.scheduledAt.trim() !== ""
-            ? body.scheduledAt
+        typeof data.scheduledAt === "string" && data.scheduledAt.trim() !== ""
+            ? data.scheduledAt
             : null;
 
     try {
         const created = db
             .insert(matches)
             .values({
-                matchNumber: body.matchNumber,
-                team1Id: body.team1Id,
+                matchNumber: data.matchNumber,
+                team1Id: data.team1Id,
                 team2Id,
                 scheduledAt,
                 status: "upcoming",
