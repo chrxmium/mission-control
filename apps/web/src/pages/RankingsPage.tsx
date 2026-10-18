@@ -22,19 +22,11 @@ import {
     Typography,
 } from "@mui/material";
 
-type Ranking = {
-    rank: number | null;
-    teamId: number;
-    teamNumber: number;
-    teamName: string;
-    matches: number;
-    averageScore: number | null;
-    highScore: number | null;
-};
+import { api } from "../lib/api.js";
 
-type RankingsResponse = {
-    rankings: Ranking[];
-};
+type RankingsResponse = Awaited<ReturnType<ReturnType<typeof api.api.v1.rankings.$get>["json"]>>;
+
+type Ranking = RankingsResponse["rankings"][number];
 
 export default function RankingsPage() {
     const [rankings, setRankings] = useState<Ranking[]>([]);
@@ -48,7 +40,7 @@ export default function RankingsPage() {
         setError("");
 
         try {
-            const response = await fetch("/api/v1/rankings");
+            const response = await api.api.v1.rankings.$get();
 
             if (!response.ok) {
                 setError(`Failed to load rankings (${response.status}).`);
@@ -56,7 +48,7 @@ export default function RankingsPage() {
                 return;
             }
 
-            const data: RankingsResponse = await response.json();
+            const data = await response.json();
 
             setRankings(data.rankings);
         } catch (error) {
