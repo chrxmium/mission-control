@@ -1,5 +1,8 @@
 FROM node:22-bookworm-slim AS build
 
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -7,9 +10,10 @@ COPY apps/server/package.json ./apps/server/
 COPY apps/web/package.json ./apps/web/
 COPY packages/rules/package.json ./packages/rules/
 
-RUN npm ci --workspace=@mission-control/web --workspace=@mission-control/rules --include-workspace-root
+RUN npm ci --workspace=@mission-control/server --workspace=@mission-control/web --workspace=@mission-control/rules --include-workspace-root
 
 COPY apps/web/ ./apps/web/
+COPY apps/server/src/ ./apps/server/src/
 COPY packages/rules/ ./packages/rules/
 COPY tsconfig.json ./
 
