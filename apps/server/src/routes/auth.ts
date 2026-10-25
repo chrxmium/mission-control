@@ -2,7 +2,7 @@ import { and, eq, gt, isNull } from "drizzle-orm";
 import { Hono } from "hono";
 import * as v from "valibot";
 
-import { createSession, getSession, hashToken, verifyPassword } from "../auth.js";
+import { createSession, hashToken, verifyPassword } from "../auth.js";
 import { db } from "../db/index.js";
 import { refereeLoginCodes, referees } from "../db/schema.js";
 import { loginSchema } from "../validators/auth.js";
@@ -44,11 +44,7 @@ export const authRoutes = new Hono()
             .where(eq(refereeLoginCodes.tokenHash, tokenHash))
             .get();
 
-        if (
-            !loginCode ||
-            loginCode.redeemedAt !== null ||
-            now >= loginCode.expiresAt
-        ) {
+        if (!loginCode || loginCode.redeemedAt !== null || now >= loginCode.expiresAt) {
             return c.json({ error: "Invalid, expired, or already-used code" }, 401);
         }
 

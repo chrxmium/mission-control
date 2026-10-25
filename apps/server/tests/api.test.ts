@@ -101,7 +101,6 @@ try {
         Authorization: `Bearer ${login.body.token}`,
     };
 
-
     const headLogin = await request("POST", "/api/v1/auth/headref/login", {
         password: process.env.REFEREE_PASSWORD,
     });

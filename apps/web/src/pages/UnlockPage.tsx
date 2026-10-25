@@ -1,17 +1,72 @@
-// hi lol so also yeah this had a qr code thing but it's being remove for now bc mvp thanks bye
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import LockOpenIcon from "@mui/icons-material/LockOpen";
+import QrCode2Icon from "@mui/icons-material/QrCode2";
 
 import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
 
 export default function UnlockPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const code = searchParams.get("code");
 
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // Prevent duplicate redemption attempts during React Strict Mode effect replay.
+    const redemptionStarted = useRef(false);
+
+    const handleCodeRedemption = useCallback(
+        async (loginCode: string) => {
+            if (loading) return;
+
+            setError("");
+            setLoading(true);
+
+            try {
+                const response = await fetch("/api/v1/auth/referee/redeem", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ code: loginCode }),
+                });
+
+                const data: {
+                    token?: string;
+                    error?: string;
+                } = await response.json();
+
+                if (!response.ok) {
+                    setError(data.error ?? "Unable to redeem this QR code.");
+                    return;
+                }
+
+                if (!data.token) {
+                    setError("Server did not return a session token.");
+                    return;
+                }
+
+                sessionStorage.setItem("referee_token", data.token);
+                navigate("/matches", { replace: true });
+            } catch (error) {
+                console.error("QR code redemption failed:", error);
+                setError("Unable to connect to the server.");
+            } finally {
+                setLoading(false);
+            }
+        },
+        [navigate, loading],
+    );
+
+    useEffect(() => {
+        if (!code || redemptionStarted.current) return;
+
+        redemptionStarted.current = true;
+        void handleCodeRedemption(code);
+    }, [code, handleCodeRedemption]);
 
     const handlePasswordUnlock = async () => {
         if (loading) return;
@@ -49,16 +104,11 @@ export default function UnlockPage() {
                 return;
             }
 
-            // Store the token for this browser tab.
             sessionStorage.setItem("referee_token", data.token);
-
             setPassword("");
-
-            // Take the referee to the match list.
             navigate("/matches", { replace: true });
         } catch (error) {
             console.error("Login failed:", error);
-
             setError("Unable to connect to the server.");
         } finally {
             setLoading(false);
@@ -88,9 +138,16 @@ export default function UnlockPage() {
                             </Typography>
 
                             <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-                                Enter the event referee password to unlock match scoring.
+                                Unlock match scoring using your referee QR code or the event
+                                password.
                             </Typography>
                         </Box>
+
+                        {code && loading && (
+                            <Alert severity="info" icon={<QrCode2Icon />}>
+                                Redeeming your referee QR code...
+                            </Alert>
+                        )}
 
                         {error && <Alert severity="error">{error}</Alert>}
 
@@ -121,18 +178,21 @@ export default function UnlockPage() {
                                     fontWeight: 700,
                                 }}
                             >
-                                {loading ? "Unlocking..." : "Unlock"}
+                                {loading
+                                    ? code
+                                        ? "Redeeming QR code..."
+                                        : "Unlocking..."
+                                    : "Unlock"}
                             </Button>
                         </Stack>
 
                         <Typography
                             variant="body2"
                             color="text.secondary"
-                            sx={{
-                                textAlign: "center",
-                            }}
+                            sx={{ textAlign: "center" }}
                         >
-                            Referee access is required to submit match scores.
+                            Referee access is required to submit match scores. QR login codes are
+                            single-use and expire after five minutes.
                         </Typography>
                     </Stack>
                 </CardContent>

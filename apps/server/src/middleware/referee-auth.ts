@@ -1,4 +1,3 @@
-
 import type { MiddlewareHandler } from "hono";
 import { getSession } from "../auth.js";
 

@@ -6,7 +6,7 @@ import { Hono } from "hono";
 import { getSession, hashToken } from "../auth.js";
 import { requireHeadRefSession } from "../middleware/referee-auth.js";
 import { db } from "../db/index.js";
-import { authSessions, refereeLoginCodes, referees } from "../db/schema.js";
+import { refereeLoginCodes, referees } from "../db/schema.js";
 
 const CODE_DURATION = 5 * 60 * 1000;
 
@@ -83,20 +83,14 @@ export const refereesRoutes = new Hono()
             return c.json({ error: "Invalid referee ID" }, 400);
         }
 
-        const referee = db
-            .select()
-            .from(referees)
-            .where(eq(referees.id, refereeId))
-            .get();
+        const referee = db.select().from(referees).where(eq(referees.id, refereeId)).get();
 
         if (!referee || !referee.active) {
             return c.json({ error: "Active referee not found" }, 404);
         }
 
         const authorization = c.req.header("Authorization");
-        const headrefToken = authorization?.startsWith("Bearer ")
-            ? authorization.slice(7)
-            : "";
+        const headrefToken = authorization?.startsWith("Bearer ") ? authorization.slice(7) : "";
         const headrefSession = headrefToken ? getSession(headrefToken) : null;
 
         if (!headrefSession || headrefSession.role !== "headref") {
@@ -118,14 +112,17 @@ export const refereesRoutes = new Hono()
             })
             .run();
 
-        return c.json({
-            code,
-            referee: {
-                id: referee.id,
-                name: referee.name,
-                username: referee.username,
+        return c.json(
+            {
+                code,
+                referee: {
+                    id: referee.id,
+                    name: referee.name,
+                    username: referee.username,
+                },
+                expiresAt,
+                expiresIn: CODE_DURATION / 1000,
             },
-            expiresAt,
-            expiresIn: CODE_DURATION / 1000,
-        }, 201);
+            201,
+        );
     });
