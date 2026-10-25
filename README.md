@@ -19,7 +19,7 @@ Made for **Hack Club's YSWS Terra**. Hello reviewers!!
 - **Match management:** View scheduled matches, submit results, prevent duplicate submissions, and review completed scoresheets.
 - **Rankings:** Automatically calculate rankings, average scores, highest scores, and completed match counts.
 - **Referee authentication:** Password-protected scoring with 12-hour sessions.
-- **Self-hosting:** Docker deployment with SQLite persistence, TrueNAS  support, and Cloudflare Tunnel compatibility.
+- **Self-hosting:** Docker deployment with SQLite persistence, TrueNAS support, and Cloudflare Tunnel compatibility.
 
 The frontend and backend share the same TypeScript scoring rules to keep calculations consistent.
 
