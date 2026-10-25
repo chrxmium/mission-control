@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
+import type { InferResponseType } from "hono/client";
+
 import {
     Alert,
     Box,
@@ -24,7 +26,7 @@ import {
 
 import { api } from "../lib/api.js";
 
-type RankingsResponse = Awaited<ReturnType<ReturnType<typeof api.api.v1.rankings.$get>["json"]>>;
+type RankingsResponse = InferResponseType<typeof api.api.v1.rankings.$get, 200>;
 
 type Ranking = RankingsResponse["rankings"][number];
 

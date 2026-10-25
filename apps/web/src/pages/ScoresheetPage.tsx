@@ -16,42 +16,15 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Link, useParams } from "react-router-dom";
 
-type Team = {
-    id: number;
-    number: number;
-    name: string;
-};
+import type { InferResponseType } from "hono/client";
+import { api } from "../lib/api.js";
 
-type Scoresheet = {
-    id: number;
-    teamId: number;
-    matchNumber: number;
-    tableNumber: number;
+type ScoresheetResponse = InferResponseType<(typeof api.api.v1.scoresheets)[":id"]["$get"], 200>;
 
-    m01YoungForest: number;
-    m01GrandTree: number;
-    m01HollowTree: number;
-    m01QueenKnockedDown: boolean;
+type TeamResponse = InferResponseType<(typeof api.api.v1.teams)[":id"]["$get"], 200>;
 
-    m02Base: number;
-    m02Canopy: number;
-
-    m03Waterfall: number;
-
-    m04Nest: boolean;
-    m04Hollow: boolean;
-
-    m05Haven: number;
-
-    luAdded: number;
-    luContained: number;
-
-    interference: number;
-    gp: number;
-
-    totalScore: number;
-    submittedAt: string;
-};
+type Scoresheet = ScoresheetResponse["scoresheet"];
+type Team = TeamResponse["team"];
 
 type Mission = {
     title: string;
@@ -142,9 +115,15 @@ export default function ScoresheetPage() {
             setTeam(null);
 
             try {
-                const response = await fetch(`/api/v1/scoresheets/${id}`, {
-                    signal: controller.signal,
-                });
+                if (!id) {
+                    setError("Scoresheet not found.");
+                    return;
+                }
+
+                const response = await api.api.v1.scoresheets[":id"].$get(
+                    { param: { id } },
+                    { init: { signal: controller.signal } },
+                );
 
                 if (!response.ok) {
                     setError(
@@ -155,9 +134,7 @@ export default function ScoresheetPage() {
                     return;
                 }
 
-                const data: {
-                    scoresheet: Scoresheet;
-                } = await response.json();
+                const data = await response.json();
 
                 if (controller.signal.aborted) {
                     return;
@@ -167,14 +144,13 @@ export default function ScoresheetPage() {
 
                 setScoresheet(sheet);
 
-                const teamResponse = await fetch(`/api/v1/teams/${sheet.teamId}`, {
-                    signal: controller.signal,
-                });
+                const teamResponse = await api.api.v1.teams[":id"].$get(
+                    { param: { id: String(sheet.teamId) } },
+                    { init: { signal: controller.signal } },
+                );
 
                 if (teamResponse.ok) {
-                    const teamData: {
-                        team: Team;
-                    } = await teamResponse.json();
+                    const teamData = await teamResponse.json();
 
                     if (!controller.signal.aborted) {
                         setTeam(teamData.team);

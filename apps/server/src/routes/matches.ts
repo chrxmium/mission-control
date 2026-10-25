@@ -57,7 +57,7 @@ export const matchesRoutes = new Hono()
             },
 
             team2:
-                match.team2Id === null
+                match.team2Id === null || match.team2Number === null || match.team2Name === null
                     ? null
                     : {
                           id: match.team2Id,
