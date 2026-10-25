@@ -1,26 +1,38 @@
-// NOTE: This is a very simple authentication system that is not suitable for production use.
-// It is only intended for use in a local development environment.
-// I just want to submit this MVP okay bro :cry:
-// I'll get it to a deployable standard later, I promise :pray:
-import { randomBytes, timingSafeEqual } from "node:crypto";
+
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { eq } from "drizzle-orm";
+
+import { db } from "./db/index.js";
+import { authSessions, referees } from "./db/schema.js";
 
 const SESSION_DURATION = 12 * 60 * 60 * 1000;
 
-type Session = {
+export type SessionRole = "headref" | "referee";
+
+export type AuthenticatedSession = {
+    id: number;
+    role: SessionRole;
+    refereeId: number | null;
     expiresAt: number;
 };
 
-const sessions = new Map<string, Session>();
+const refereePassword: string = (() => {
+    const password = process.env.REFEREE_PASSWORD;
 
-const refereePassword = process.env.REFEREE_PASSWORD;
+    if (!password) {
+        throw new Error("REFEREE_PASSWORD is not configured");
+    }
 
-if (!refereePassword) {
-    throw new Error("REFEREE_PASSWORD is not configured");
+    return password;
+})();
+
+function hashToken(token: string): string {
+    return createHash("sha256").update(token).digest("hex");
 }
 
 export function verifyPassword(password: string): boolean {
     const supplied = Buffer.from(password);
-    const expected = Buffer.from(refereePassword!);
+    const expected = Buffer.from(refereePassword);
 
     if (supplied.length !== expected.length) {
         return false;
@@ -29,27 +41,71 @@ export function verifyPassword(password: string): boolean {
     return timingSafeEqual(supplied, expected);
 }
 
-export function createSession(): string {
+export function createSession(
+    role: SessionRole = "referee",
+    refereeId: number | null = null,
+): string {
     const token = randomBytes(32).toString("hex");
+    const now = Date.now();
 
-    sessions.set(token, {
-        expiresAt: Date.now() + SESSION_DURATION,
-    });
+    db.insert(authSessions)
+        .values({
+            tokenHash: hashToken(token),
+            role,
+            refereeId,
+            createdAt: now,
+            expiresAt: now + SESSION_DURATION,
+            revokedAt: null,
+        })
+        .run();
 
     return token;
 }
 
+export function getSession(token: string): AuthenticatedSession | null {
+    const session = db
+        .select({
+            id: authSessions.id,
+            role: authSessions.role,
+            refereeId: authSessions.refereeId,
+            expiresAt: authSessions.expiresAt,
+            revokedAt: authSessions.revokedAt,
+        })
+        .from(authSessions)
+        .where(eq(authSessions.tokenHash, hashToken(token)))
+        .get();
+
+    if (!session || session.revokedAt !== null || Date.now() >= session.expiresAt) {
+        return null;
+    }
+
+    if (session.role === "referee" && session.refereeId !== null) {
+        const referee = db
+            .select({ active: referees.active })
+            .from(referees)
+            .where(eq(referees.id, session.refereeId))
+            .get();
+
+        if (!referee?.active) {
+            return null;
+        }
+    }
+
+    return {
+        id: session.id,
+        role: session.role,
+        refereeId: session.refereeId,
+        expiresAt: session.expiresAt,
+    };
+}
+
 export function verifySession(token: string): boolean {
-    const session = sessions.get(token);
+    return getSession(token) !== null;
+}
 
-    if (!session) {
-        return false;
-    }
-
-    if (Date.now() >= session.expiresAt) {
-        sessions.delete(token);
-        return false;
-    }
-
-    return true;
+export function revokeSession(token: string): void {
+    db.update(authSessions)
+        .set({ revokedAt: Date.now() })
+        .where(eq(authSessions.tokenHash, hashToken(token)))
+        .run();
 }

@@ -1,13 +1,12 @@
 import { Hono } from "hono";
 import * as v from "valibot";
+
 import { loginSchema } from "../validators/auth.js";
 import { createSession, verifyPassword } from "../auth.js";
 
 export const authRoutes = new Hono()
-
     .post("/login", async (c) => {
         const body = await c.req.json().catch(() => null);
-
         const parsed = v.safeParse(loginSchema, body);
 
         if (!parsed.success) {
@@ -20,8 +19,5 @@ export const authRoutes = new Hono()
 
         const token = createSession();
 
-        return c.json({
-            token,
-            expiresIn: 43200,
-        });
+        return c.json({ token, expiresIn: 43200 });
     });
