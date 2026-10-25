@@ -6,6 +6,7 @@ import AdminPage from "./pages/AdminPage";
 import MatchesPage from "./pages/MatchesPage";
 import MatchPage from "./pages/MatchPage";
 import RankingsPage from "./pages/RankingsPage";
+import RefereeHomePage from "./pages/RefereeHomePage";
 import ScoresheetPage from "./pages/ScoresheetPage";
 import UnlockPage from "./pages/UnlockPage";
 
@@ -33,6 +34,8 @@ export default function App({ themeMode, onThemeModeChange }: AppProps) {
                 <Route path="/scoresheet/:id" element={<ScoresheetPage />} />
 
                 <Route path="/unlock" element={<UnlockPage />} />
+
+                <Route path="/referee" element={<RefereeHomePage />} />
 
                 <Route path="/admin" element={<AdminPage />} />
 

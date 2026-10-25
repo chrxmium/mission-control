@@ -58,7 +58,7 @@ export const authRoutes = new Hono()
             return c.json({ error: "Referee account is inactive" }, 403);
         }
 
-        // Conditional update makes redemption single-use, including concurrent requests.
+        // Conditional update ensures a code can only be redeemed once.
         const redeemed = db
             .update(refereeLoginCodes)
             .set({ redeemedAt: now })
@@ -80,27 +80,11 @@ export const authRoutes = new Hono()
 
         return c.json({
             token,
-            expiresIn: 43200,
+            expiresIn: 86400,
             referee: {
                 id: referee.id,
                 name: referee.name,
                 username: referee.username,
             },
         });
-    })
-    .post("/login", async (c) => {
-        const body = await c.req.json().catch(() => null);
-        const parsed = v.safeParse(loginSchema, body);
-
-        if (!parsed.success) {
-            return c.json({ error: "Invalid request" }, 400);
-        }
-
-        if (!verifyPassword(parsed.output.password)) {
-            return c.json({ error: "Incorrect password" }, 401);
-        }
-
-        // Temporary compatibility with the existing scoring flow.
-        const token = createSession();
-        return c.json({ token, expiresIn: 43200 });
     });

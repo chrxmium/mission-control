@@ -66,40 +66,11 @@ try {
     check("Health endpoint", health.status, 200);
     check("Health response", health.body.ok, true);
 
-    for (const body of [
-        {},
-        { password: null },
-        { password: 12345 },
-        { password: true },
-        { password: [] },
-    ]) {
-        const result = await request("POST", "/api/v1/auth/login", body);
-
-        check("Reject invalid login input", result.status, 400);
-        check("Preserve login validation error", result.body.error, "Invalid request");
-    }
-
-    const invalidLogin = await request("POST", "/api/v1/auth/login", {
-        password: "wrong-password",
-    });
-    check("Invalid referee login", invalidLogin.status, 401);
-
     const unauthorisedTeam = await request("POST", "/api/v1/teams", {
         number: 1001,
         name: "Alpha Robotics",
     });
     check("Admin authentication required", unauthorisedTeam.status, 401);
-
-    const login = await request("POST", "/api/v1/auth/login", {
-        password: process.env.REFEREE_PASSWORD,
-    });
-    check("Referee login", login.status, 200);
-    assert.equal(typeof login.body.token, "string");
-    check("Session duration", login.body.expiresIn, 43200);
-
-    const refereeHeaders = {
-        Authorization: `Bearer ${login.body.token}`,
-    };
 
     const headLogin = await request("POST", "/api/v1/auth/headref/login", {
         password: process.env.REFEREE_PASSWORD,
@@ -124,21 +95,36 @@ try {
     check("List referee accounts", refereeList.status, 200);
     assert.ok(refereeList.body.referees.some((r: { id: number }) => r.id === managedRefereeId));
 
+    const firstLoginCode = await request(
+        "POST",
+        `/api/v1/referees/${managedRefereeId}/login-code`,
+        undefined,
+        headHeaders,
+    );
+    check("Generate first referee login code", firstLoginCode.status, 201);
+    check("First QR expires in five minutes", firstLoginCode.body.expiresIn, 300);
+
     const loginCode = await request(
         "POST",
         `/api/v1/referees/${managedRefereeId}/login-code`,
         undefined,
         headHeaders,
     );
-    check("Generate referee login code", loginCode.status, 201);
-    assert.equal(typeof loginCode.body.code, "string");
-    check("QR code expires in five minutes", loginCode.body.expiresIn, 300);
+    check("Generate replacement referee login code", loginCode.status, 201);
+    assert.notEqual(loginCode.body.code, firstLoginCode.body.code);
+    check("Replacement QR expires in five minutes", loginCode.body.expiresIn, 300);
+
+    const staleCode = await request("POST", "/api/v1/auth/referee/redeem", {
+        code: firstLoginCode.body.code,
+    });
+    check("Reject replaced referee login code", staleCode.status, 401);
 
     const redeemedCode = await request("POST", "/api/v1/auth/referee/redeem", {
         code: loginCode.body.code,
     });
     check("Redeem referee login code", redeemedCode.status, 200);
     assert.equal(typeof redeemedCode.body.token, "string");
+    check("Referee session lasts 24 hours", redeemedCode.body.expiresIn, 86400);
     check("Redeemed identity matches referee", redeemedCode.body.referee.id, managedRefereeId);
 
     const reusedCode = await request("POST", "/api/v1/auth/referee/redeem", {
@@ -146,29 +132,10 @@ try {
     });
     check("Reject reused referee login code", reusedCode.status, 401);
 
-    const deactivated = await request(
-        "PATCH",
-        `/api/v1/referees/${managedRefereeId}/active`,
-        { active: false },
-        headHeaders,
-    );
-    check("Deactivate referee account", deactivated.status, 200);
+    const refereeHeaders = {
+        Authorization: `Bearer ${redeemedCode.body.token}`,
+    };
 
-    const inactiveCode = await request(
-        "POST",
-        `/api/v1/referees/${managedRefereeId}/login-code`,
-        undefined,
-        headHeaders,
-    );
-    check("Cannot generate code for inactive referee", inactiveCode.status, 404);
-
-    const inactiveSession = await request(
-        "POST",
-        `/api/v1/matches/1/submit`,
-        {},
-        { Authorization: `Bearer ${redeemedCode.body.token}` },
-    );
-    check("Inactive referee session rejected", inactiveSession.status, 401);
     const teamIds: number[] = [];
 
     const invalidTeams = [
@@ -228,6 +195,38 @@ try {
     const matches = await request("GET", "/api/v1/matches");
     check("List matches", matches.status, 200);
     check("Match count", matches.body.matches.length, 2);
+
+    const assignmentOptions = await request(
+        "GET",
+        "/api/v1/referees/assignment-options",
+        undefined,
+        headHeaders,
+    );
+    check("Load referee assignment options", assignmentOptions.status, 200);
+    assert.ok(assignmentOptions.body.matches.some((match: { id: number }) =>
+        match.id === standardMatch.body.match.id
+    ));
+
+    const assignment = await request(
+        "PATCH",
+        `/api/v1/referees/${managedRefereeId}/assignments`,
+        {
+            tableNumber: 1,
+            matchIds: [standardMatch.body.match.id],
+        },
+        headHeaders,
+    );
+    check("Assign referee table and match", assignment.status, 200);
+
+    const refereeHome = await request("GET", "/api/v1/referees/me", undefined, refereeHeaders);
+    check("Protected referee dashboard", refereeHome.status, 200);
+    check("Dashboard identifies signed-in referee", refereeHome.body.referee.name, "Test Referee");
+    check("Dashboard shows assigned table", refereeHome.body.referee.tableNumber, 1);
+    assert.ok(Array.isArray(refereeHome.body.matches));
+    assert.ok(refereeHome.body.matches.some((match: { matchNumber: number }) =>
+        match.matchNumber === 1
+    ));
+
 
     const solo = matches.body.matches.find((match: any) => match.matchNumber === 2);
     check("Solo match has no second team", solo.team2, null);
@@ -416,6 +415,30 @@ try {
     for (const team of rankings.body.rankings) {
         check(`Team ${team.teamNumber} match count`, team.matches, 1);
     }
+
+    const deactivated = await request(
+        "PATCH",
+        `/api/v1/referees/${managedRefereeId}/active`,
+        { active: false },
+        headHeaders,
+    );
+    check("Deactivate referee account", deactivated.status, 200);
+
+    const inactiveCode = await request(
+        "POST",
+        `/api/v1/referees/${managedRefereeId}/login-code`,
+        undefined,
+        headHeaders,
+    );
+    check("Cannot generate code for inactive referee", inactiveCode.status, 404);
+
+    const inactiveSession = await request(
+        "GET",
+        "/api/v1/referees/me",
+        undefined,
+        refereeHeaders,
+    );
+    check("Inactive referee session rejected", inactiveSession.status, 401);
 
     console.log("\nAll API integration tests passed.");
 } finally {

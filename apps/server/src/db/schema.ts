@@ -14,6 +14,7 @@ export const referees = sqliteTable("referees", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     name: text("name").notNull(),
     username: text("username").notNull().unique(),
+    tableNumber: integer("table_number"),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     createdAt: integer("created_at").notNull(),
 });
@@ -57,6 +58,26 @@ export const matches = sqliteTable("matches", {
 
     status: text("status").notNull().default("upcoming"),
 });
+
+export const refereeMatches = sqliteTable(
+    "referee_matches",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        refereeId: integer("referee_id")
+            .notNull()
+            .references(() => referees.id),
+        matchId: integer("match_id")
+            .notNull()
+            .references(() => matches.id),
+        assignedAt: integer("assigned_at").notNull(),
+    },
+    (table) => ({
+        refereeMatchUnique: uniqueIndex("referee_matches_referee_match_unique").on(
+            table.refereeId,
+            table.matchId,
+        ),
+    }),
+);
 
 export const scoresheets = sqliteTable(
     "scoresheets",

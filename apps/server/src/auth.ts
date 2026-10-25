@@ -4,7 +4,8 @@ import { eq } from "drizzle-orm";
 import { db } from "./db/index.js";
 import { authSessions, referees } from "./db/schema.js";
 
-const SESSION_DURATION = 12 * 60 * 60 * 1000;
+const HEADREF_SESSION_DURATION = 12 * 60 * 60 * 1000;
+const REFEREE_SESSION_DURATION = 24 * 60 * 60 * 1000;
 
 export type SessionRole = "headref" | "referee";
 
@@ -47,13 +48,17 @@ export function createSession(
     const token = randomBytes(32).toString("hex");
     const now = Date.now();
 
+    const duration = role === "referee"
+        ? REFEREE_SESSION_DURATION
+        : HEADREF_SESSION_DURATION;
+
     db.insert(authSessions)
         .values({
             tokenHash: hashToken(token),
             role,
             refereeId,
             createdAt: now,
-            expiresAt: now + SESSION_DURATION,
+            expiresAt: now + duration,
             revokedAt: null,
         })
         .run();
