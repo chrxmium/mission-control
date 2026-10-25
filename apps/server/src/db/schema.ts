@@ -10,6 +10,48 @@ export const teams = sqliteTable("teams", {
     name: text("name").notNull(),
 });
 
+
+export const referees = sqliteTable(
+    "referees",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        name: text("name").notNull(),
+        username: text("username").notNull().unique(),
+        active: integer("active", { mode: "boolean" }).notNull().default(true),
+        createdAt: integer("created_at").notNull(),
+    },
+);
+
+export const authSessions = sqliteTable(
+    "auth_sessions",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        tokenHash: text("token_hash").notNull().unique(),
+        role: text("role", { enum: ["headref", "referee"] }).notNull(),
+        refereeId: integer("referee_id").references(() => referees.id),
+        createdAt: integer("created_at").notNull(),
+        expiresAt: integer("expires_at").notNull(),
+        revokedAt: integer("revoked_at"),
+    },
+);
+
+export const refereeLoginCodes = sqliteTable(
+    "referee_login_codes",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        tokenHash: text("token_hash").notNull().unique(),
+        refereeId: integer("referee_id")
+            .notNull()
+            .references(() => referees.id),
+        createdBySessionId: integer("created_by_session_id")
+            .notNull()
+            .references(() => authSessions.id),
+        createdAt: integer("created_at").notNull(),
+        expiresAt: integer("expires_at").notNull(),
+        redeemedAt: integer("redeemed_at"),
+    },
+);
+
 export const matches = sqliteTable("matches", {
     id: integer("id").primaryKey({ autoIncrement: true }),
 
