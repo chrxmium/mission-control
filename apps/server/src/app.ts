@@ -7,6 +7,7 @@ import { scoresheetsRoutes } from "./routes/scoresheets.js";
 import { rankingsRoutes } from "./routes/rankings.js";
 import { matchesRoutes } from "./routes/matches.js";
 import { authRoutes } from "./routes/auth.js";
+import { refereesRoutes } from "./routes/referees.js";
 
 export const app = new Hono();
 
@@ -27,6 +28,7 @@ export const routes = app
     .route("/api/v1/scoresheets", scoresheetsRoutes)
     .route("/api/v1/rankings", rankingsRoutes)
     .route("/api/v1/matches", matchesRoutes)
+    .route("/api/v1/referees", refereesRoutes)
     .route("/api/v1/auth", authRoutes);
 
 export type AppType = typeof routes;
