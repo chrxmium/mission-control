@@ -44,7 +44,9 @@ export default function RankingsPage() {
         setError("");
 
         try {
-            const response = await api.api.v1.rankings.$get({ query: { eventId: String(selectedEventId) } });
+            const response = await api.api.v1.rankings.$get({
+                query: { eventId: String(selectedEventId) },
+            });
 
             if (!response.ok) {
                 setError(`Failed to load rankings (${response.status}).`);
@@ -69,7 +71,11 @@ export default function RankingsPage() {
     }, [selectedEventId]);
 
     if (loadingEvents || selectedEventId === null) {
-        return <Box sx={{ py: 8, display: "flex", justifyContent: "center" }}><CircularProgress /></Box>;
+        return (
+            <Box sx={{ py: 8, display: "flex", justifyContent: "center" }}>
+                <CircularProgress />
+            </Box>
+        );
     }
 
     const rankedTeams = rankings.filter((team) => team.rank !== null);
@@ -119,7 +125,9 @@ export default function RankingsPage() {
                     </Stack>
 
                     <Typography color="text.secondary" sx={{ mt: 0.75 }}>
-                        {selectedEvent ? `${selectedEvent.name} · ${selectedEvent.season} · Official Match Rankings` : "Official Match Rankings"}
+                        {selectedEvent
+                            ? `${selectedEvent.name} · ${selectedEvent.season} · Official Match Rankings`
+                            : "Official Match Rankings"}
                     </Typography>
                 </Box>
 

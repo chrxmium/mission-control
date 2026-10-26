@@ -23,9 +23,10 @@ const team2 = alias(teams, "team2");
 export const matchesRoutes = new Hono()
     .get("/", (c) => {
         const eventIdParam = c.req.query("eventId");
-        const activeEvent = eventIdParam === undefined
-            ? db.select({ id: events.id }).from(events).where(eq(events.status, "active")).get()
-            : undefined;
+        const activeEvent =
+            eventIdParam === undefined
+                ? db.select({ id: events.id }).from(events).where(eq(events.status, "active")).get()
+                : undefined;
         const eventId = eventIdParam === undefined ? activeEvent?.id : Number(eventIdParam);
 
         if (eventId === undefined || !Number.isSafeInteger(eventId) || eventId < 1) {

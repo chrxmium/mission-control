@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Divider, Stack, Typography } from "@mui/material";
+import {
+    Alert,
+    Box,
+    Button,
+    Card,
+    CardContent,
+    Chip,
+    CircularProgress,
+    Divider,
+    Stack,
+    Typography,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 type Team = { id: number; number: number; name: string };
@@ -54,7 +65,9 @@ export default function RefereeHomePage() {
         }
     }, [navigate]);
 
-    useEffect(() => { void load(); }, [load]);
+    useEffect(() => {
+        void load();
+    }, [load]);
 
     const logout = () => {
         sessionStorage.removeItem("referee_token");
@@ -71,12 +84,20 @@ export default function RefereeHomePage() {
             ) : error && !data ? (
                 <Stack spacing={2}>
                     <Alert severity="error">{error}</Alert>
-                    <Button onClick={() => void load()} variant="contained">Try again</Button>
+                    <Button onClick={() => void load()} variant="contained">
+                        Try again
+                    </Button>
                 </Stack>
             ) : data ? (
                 <Stack spacing={3}>
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}
-                        sx={{ justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" } }}>
+                    <Stack
+                        direction={{ xs: "column", sm: "row" }}
+                        spacing={2}
+                        sx={{
+                            justifyContent: "space-between",
+                            alignItems: { xs: "flex-start", sm: "center" },
+                        }}
+                    >
                         <Box>
                             <Typography variant="h4" sx={{ fontWeight: 800 }}>
                                 Hello, {data.referee.name}
@@ -86,8 +107,12 @@ export default function RefereeHomePage() {
                             </Typography>
                         </Box>
                         <Stack direction="row" spacing={1}>
-                            <Button variant="outlined" onClick={() => void load()}>Refresh</Button>
-                            <Button variant="outlined" color="inherit" onClick={logout}>Log out</Button>
+                            <Button variant="outlined" onClick={() => void load()}>
+                                Refresh
+                            </Button>
+                            <Button variant="outlined" color="inherit" onClick={logout}>
+                                Log out
+                            </Button>
                         </Stack>
                     </Stack>
 
@@ -95,50 +120,88 @@ export default function RefereeHomePage() {
 
                     <Card variant="outlined">
                         <CardContent>
-                            <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>Your assignment</Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
+                                Your assignment
+                            </Typography>
                             <Stack direction={{ xs: "column", sm: "row" }} spacing={3}>
                                 <Box>
-                                    <Typography variant="body2" color="text.secondary">Referee</Typography>
-                                    <Typography sx={{ fontWeight: 700 }}>{data.referee.name}</Typography>
-                                    <Typography variant="body2" color="text.secondary">@{data.referee.username}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary">Assigned table</Typography>
-                                    <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                                        {data.referee.tableNumber == null ? "Not assigned" : `Table ${data.referee.tableNumber}`}
+                                    <Typography variant="body2" color="text.secondary">
+                                        Referee
+                                    </Typography>
+                                    <Typography sx={{ fontWeight: 700 }}>
+                                        {data.referee.name}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        @{data.referee.username}
                                     </Typography>
                                 </Box>
                                 <Box>
-                                    <Typography variant="body2" color="text.secondary">Scheduled matches</Typography>
-                                    <Typography variant="h5" sx={{ fontWeight: 800 }}>{data.matches.length}</Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Assigned table
+                                    </Typography>
+                                    <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                                        {data.referee.tableNumber == null
+                                            ? "Not assigned"
+                                            : `Table ${data.referee.tableNumber}`}
+                                    </Typography>
+                                </Box>
+                                <Box>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Scheduled matches
+                                    </Typography>
+                                    <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                                        {data.matches.length}
+                                    </Typography>
                                 </Box>
                             </Stack>
                         </CardContent>
                     </Card>
 
                     <Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.5 }}>Your matches</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.5 }}>
+                            Your matches
+                        </Typography>
                         {data.matches.length === 0 ? (
-                            <Alert severity="info">You don't have any matches assigned yet. Ask the head referee to update your assignments.</Alert>
+                            <Alert severity="info">
+                                You don't have any matches assigned yet. Ask the head referee to
+                                update your assignments.
+                            </Alert>
                         ) : (
                             <Stack spacing={1.5}>
                                 {data.matches.map((match) => (
                                     <Card key={match.id} variant="outlined">
                                         <CardContent>
-                                            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}
-                                                sx={{ justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" } }}>
+                                            <Stack
+                                                direction={{ xs: "column", sm: "row" }}
+                                                spacing={1.5}
+                                                sx={{
+                                                    justifyContent: "space-between",
+                                                    alignItems: { xs: "flex-start", sm: "center" },
+                                                }}
+                                            >
                                                 <Box>
-                                                    <Typography variant="h6" sx={{ fontWeight: 800 }}>Match {match.matchNumber}</Typography>
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{ fontWeight: 800 }}
+                                                    >
+                                                        Match {match.matchNumber}
+                                                    </Typography>
                                                     <Typography>
-                                                        Team {match.team1.number} — {match.team1.name}
+                                                        Team {match.team1.number} —{" "}
+                                                        {match.team1.name}
                                                     </Typography>
                                                     {match.team2 && (
                                                         <Typography>
-                                                            Team {match.team2.number} — {match.team2.name}
+                                                            Team {match.team2.number} —{" "}
+                                                            {match.team2.name}
                                                         </Typography>
                                                     )}
                                                     {match.scheduledAt && (
-                                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                                        <Typography
+                                                            variant="body2"
+                                                            color="text.secondary"
+                                                            sx={{ mt: 0.5 }}
+                                                        >
                                                             Scheduled: {match.scheduledAt}
                                                         </Typography>
                                                     )}
@@ -153,7 +216,8 @@ export default function RefereeHomePage() {
                     </Box>
                     <Divider />
                     <Typography variant="body2" color="text.secondary">
-                        Your dashboard only displays assignments associated with your referee account.
+                        Your dashboard only displays assignments associated with your referee
+                        account.
                     </Typography>
                 </Stack>
             ) : null}

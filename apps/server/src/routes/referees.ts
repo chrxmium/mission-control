@@ -7,7 +7,14 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { getSession, hashToken } from "../auth.js";
 import { requireHeadRefSession, requireRefereeSession } from "../middleware/referee-auth.js";
 import { db } from "../db/index.js";
-import { events, matches, refereeLoginCodes, refereeMatches, referees, teams } from "../db/schema.js";
+import {
+    events,
+    matches,
+    refereeLoginCodes,
+    refereeMatches,
+    referees,
+    teams,
+} from "../db/schema.js";
 
 const CODE_DURATION = 5 * 60 * 1000;
 
@@ -36,11 +43,8 @@ function bearerSession(authorization: string | undefined) {
 
 function resolveEventId(eventIdParam: string | undefined) {
     if (eventIdParam === undefined) {
-        return db
-            .select({ id: events.id })
-            .from(events)
-            .where(eq(events.status, "active"))
-            .get()?.id;
+        return db.select({ id: events.id }).from(events).where(eq(events.status, "active")).get()
+            ?.id;
     }
 
     const id = Number(eventIdParam);
@@ -103,9 +107,7 @@ export const refereesRoutes = new Hono()
                     name: match.team1Name,
                 },
                 team2:
-                    match.team2Id === null ||
-                    match.team2Number === null ||
-                    match.team2Name === null
+                    match.team2Id === null || match.team2Number === null || match.team2Name === null
                         ? null
                         : {
                               id: match.team2Id,
@@ -156,9 +158,10 @@ export const refereesRoutes = new Hono()
                 matchNumber: match.matchNumber,
                 scheduledAt: match.scheduledAt,
                 status: match.status,
-                teams: match.team2Number === null
-                    ? `Team ${match.team1Number} (solo)`
-                    : `Team ${match.team1Number} vs Team ${match.team2Number}`,
+                teams:
+                    match.team2Number === null
+                        ? `Team ${match.team1Number} (solo)`
+                        : `Team ${match.team1Number} vs Team ${match.team2Number}`,
             }));
 
         return c.json({ matches: options });
@@ -222,7 +225,11 @@ export const refereesRoutes = new Hono()
 
         const eventId = parsed.output.eventId;
         if (eventId !== undefined) {
-            const event = db.select({ id: events.id }).from(events).where(eq(events.id, eventId)).get();
+            const event = db
+                .select({ id: events.id })
+                .from(events)
+                .where(eq(events.id, eventId))
+                .get();
             if (!event) return c.json({ error: "Event not found" }, 404);
         }
 
@@ -238,7 +245,10 @@ export const refereesRoutes = new Hono()
             }
 
             if (eventId !== undefined && found.some((match) => match.eventId !== eventId)) {
-                return c.json({ error: "All assigned matches must belong to the selected event" }, 400);
+                return c.json(
+                    { error: "All assigned matches must belong to the selected event" },
+                    400,
+                );
             }
         }
 

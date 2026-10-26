@@ -10,20 +10,17 @@ export const scoresheetsRoutes = new Hono()
 
     .get("/", (c) => {
         const eventIdParam = c.req.query("eventId");
-        const activeEvent = eventIdParam === undefined
-            ? db.select({ id: events.id }).from(events).where(eq(events.status, "active")).get()
-            : undefined;
+        const activeEvent =
+            eventIdParam === undefined
+                ? db.select({ id: events.id }).from(events).where(eq(events.status, "active")).get()
+                : undefined;
         const eventId = eventIdParam === undefined ? activeEvent?.id : Number(eventIdParam);
 
         if (eventId === undefined || !Number.isSafeInteger(eventId) || eventId < 1) {
             return c.json({ scoresheets: [] });
         }
 
-        const result = db
-            .select()
-            .from(scoresheets)
-            .where(eq(scoresheets.eventId, eventId))
-            .all();
+        const result = db.select().from(scoresheets).where(eq(scoresheets.eventId, eventId)).all();
 
         return c.json({ scoresheets: result });
     })
@@ -85,10 +82,7 @@ export const scoresheetsRoutes = new Hono()
             return c.json({ scoresheet: newScoresheet }, 201);
         } catch (error) {
             if (isSqliteUniqueConstraintError(error)) {
-                return c.json(
-                    { error: "Scoresheet already exists for this team and match" },
-                    409,
-                );
+                return c.json({ error: "Scoresheet already exists for this team and match" }, 409);
             }
 
             console.error(error);
@@ -119,10 +113,7 @@ export const scoresheetsRoutes = new Hono()
         const { data, sheet, totalScore } = prepared;
 
         if (data.teamId !== existing.teamId || data.matchNumber !== existing.matchNumber) {
-            return c.json(
-                { error: "A scoresheet cannot be moved to another team or match" },
-                400,
-            );
+            return c.json({ error: "A scoresheet cannot be moved to another team or match" }, 400);
         }
 
         try {
@@ -139,10 +130,7 @@ export const scoresheetsRoutes = new Hono()
             return c.json({ scoresheet: updatedScoresheet });
         } catch (error) {
             if (isSqliteUniqueConstraintError(error)) {
-                return c.json(
-                    { error: "Scoresheet already exists for this team and match" },
-                    409,
-                );
+                return c.json({ error: "Scoresheet already exists for this team and match" }, 409);
             }
 
             console.error(error);

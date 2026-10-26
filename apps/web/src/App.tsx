@@ -24,10 +24,7 @@ export default function App({ themeMode, onThemeModeChange }: AppProps) {
             <Routes>
                 <Route
                     element={
-                        <AppShell
-                            themeMode={themeMode}
-                            onThemeModeChange={onThemeModeChange}
-                        />
+                        <AppShell themeMode={themeMode} onThemeModeChange={onThemeModeChange} />
                     }
                 >
                     <Route path="/" element={<Navigate to="/matches" replace />} />

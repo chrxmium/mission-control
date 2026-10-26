@@ -203,9 +203,11 @@ try {
         headHeaders,
     );
     check("Load referee assignment options", assignmentOptions.status, 200);
-    assert.ok(assignmentOptions.body.matches.some((match: { id: number }) =>
-        match.id === standardMatch.body.match.id
-    ));
+    assert.ok(
+        assignmentOptions.body.matches.some(
+            (match: { id: number }) => match.id === standardMatch.body.match.id,
+        ),
+    );
 
     const assignment = await request(
         "PATCH",
@@ -223,10 +225,9 @@ try {
     check("Dashboard identifies signed-in referee", refereeHome.body.referee.name, "Test Referee");
     check("Dashboard shows assigned table", refereeHome.body.referee.tableNumber, 1);
     assert.ok(Array.isArray(refereeHome.body.matches));
-    assert.ok(refereeHome.body.matches.some((match: { matchNumber: number }) =>
-        match.matchNumber === 1
-    ));
-
+    assert.ok(
+        refereeHome.body.matches.some((match: { matchNumber: number }) => match.matchNumber === 1),
+    );
 
     const solo = matches.body.matches.find((match: any) => match.matchNumber === 2);
     check("Solo match has no second team", solo.team2, null);
@@ -432,14 +433,8 @@ try {
     );
     check("Cannot generate code for inactive referee", inactiveCode.status, 404);
 
-    const inactiveSession = await request(
-        "GET",
-        "/api/v1/referees/me",
-        undefined,
-        refereeHeaders,
-    );
+    const inactiveSession = await request("GET", "/api/v1/referees/me", undefined, refereeHeaders);
     check("Inactive referee session rejected", inactiveSession.status, 401);
-
 
     const listedEvents = await request("GET", "/api/v1/events");
     check("List events", listedEvents.status, 200);
@@ -490,7 +485,9 @@ try {
     const secondEventTeams = await request("GET", `/api/v1/teams?eventId=${secondEvent.id}`);
     check("List teams for second event", secondEventTeams.status, 200);
     check("Second event has only its two teams", secondEventTeams.body.teams.length, 2);
-    assert.ok(secondEventTeams.body.teams.some((team: { id: number }) => team.id === secondTeam1Id));
+    assert.ok(
+        secondEventTeams.body.teams.some((team: { id: number }) => team.id === secondTeam1Id),
+    );
     assert.ok(!secondEventTeams.body.teams.some((team: { id: number }) => team.id === teamIds[0]));
 
     const secondMatchResponse = await request(
@@ -510,7 +507,9 @@ try {
     const originalMatches = await request("GET", "/api/v1/matches");
     check("Default matches use active event", originalMatches.status, 200);
     check("Original event still has its two matches", originalMatches.body.matches.length, 2);
-    assert.ok(!originalMatches.body.matches.some((match: { id: number }) => match.id === secondMatchId));
+    assert.ok(
+        !originalMatches.body.matches.some((match: { id: number }) => match.id === secondMatchId),
+    );
 
     const secondEventMatches = await request("GET", `/api/v1/matches?eventId=${secondEvent.id}`);
     check("List matches for second event", secondEventMatches.status, 200);
@@ -555,14 +554,20 @@ try {
     const teamsAfterActivation = await request("GET", "/api/v1/teams");
     check("Default teams follow newly active event", teamsAfterActivation.status, 200);
     check("New active event teams", teamsAfterActivation.body.teams.length, 2);
-    assert.ok(teamsAfterActivation.body.teams.every(
-        (team: { eventId: number }) => team.eventId === secondEvent.id,
-    ));
+    assert.ok(
+        teamsAfterActivation.body.teams.every(
+            (team: { eventId: number }) => team.eventId === secondEvent.id,
+        ),
+    );
 
     const matchesAfterActivation = await request("GET", "/api/v1/matches");
     check("Default matches follow newly active event", matchesAfterActivation.status, 200);
     check("New active event match count", matchesAfterActivation.body.matches.length, 1);
-    check("New active event default match ID", matchesAfterActivation.body.matches[0].id, secondMatchId);
+    check(
+        "New active event default match ID",
+        matchesAfterActivation.body.matches[0].id,
+        secondMatchId,
+    );
 
     const thirdEventResponse = await request(
         "POST",

@@ -28,10 +28,7 @@ export const teams = sqliteTable(
         name: text("name").notNull(),
     },
     (table) => ({
-        eventNumberUnique: uniqueIndex("teams_event_number_unique").on(
-            table.eventId,
-            table.number,
-        ),
+        eventNumberUnique: uniqueIndex("teams_event_number_unique").on(table.eventId, table.number),
     }),
 );
 

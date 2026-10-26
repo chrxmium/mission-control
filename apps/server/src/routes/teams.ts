@@ -31,11 +31,7 @@ export const teamsRoutes = new Hono()
             return c.json({ teams: [] });
         }
 
-        const result = db
-            .select()
-            .from(teams)
-            .where(eq(teams.eventId, eventId))
-            .all();
+        const result = db.select().from(teams).where(eq(teams.eventId, eventId)).all();
 
         return c.json({ teams: result });
     })
@@ -63,13 +59,10 @@ export const teamsRoutes = new Hono()
         }
 
         const requestedEventId = parsed.output.eventId;
-        const activeEvent = requestedEventId === undefined
-            ? db
-                .select({ id: events.id })
-                .from(events)
-                .where(eq(events.status, "active"))
-                .get()
-            : undefined;
+        const activeEvent =
+            requestedEventId === undefined
+                ? db.select({ id: events.id }).from(events).where(eq(events.status, "active")).get()
+                : undefined;
 
         const eventId = requestedEventId ?? activeEvent?.id;
 
@@ -77,11 +70,7 @@ export const teamsRoutes = new Hono()
             return c.json({ error: "No active event found" }, 400);
         }
 
-        const event = db
-            .select({ id: events.id })
-            .from(events)
-            .where(eq(events.id, eventId))
-            .get();
+        const event = db.select({ id: events.id }).from(events).where(eq(events.id, eventId)).get();
 
         if (!event) {
             return c.json({ error: "Event not found" }, 404);
@@ -102,9 +91,6 @@ export const teamsRoutes = new Hono()
         } catch (error) {
             console.error(error);
 
-            return c.json(
-                { error: "Team number already exists in this event" },
-                409,
-            );
+            return c.json({ error: "Team number already exists in this event" }, 409);
         }
     });

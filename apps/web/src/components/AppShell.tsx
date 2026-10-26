@@ -51,7 +51,8 @@ const links = [
 export default function AppShell({ themeMode, onThemeModeChange }: AppShellProps) {
     const location = useLocation();
     const navigate = useNavigate();
-    const { events, selectedEventId, setSelectedEventId, loadingEvents, eventsError } = useEventContext();
+    const { events, selectedEventId, setSelectedEventId, loadingEvents, eventsError } =
+        useEventContext();
 
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
 

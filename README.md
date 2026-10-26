@@ -33,6 +33,7 @@ Made for Hack Club's YSWS Terra. Hello reviewers!!
 ## Setup Guide
 
 **Requirements:**
+
 - Node.js
 - npm
 - Git
@@ -78,6 +79,7 @@ npm run db:migrate
 ```bash
 npm run dev
 ```
+
 Default port: 3001
 
 ### 6. Start Frontend
@@ -86,6 +88,7 @@ Default port: 3001
 cd apps/web
 npm run dev
 ```
+
 Default port: 5173
 
 ## Scoring
@@ -108,6 +111,7 @@ Penalties are applied automatically. (For Futures Edition)
 - 2 violations: −30 points total
 - 3 violations: whole match score becomes 0
 -
+
 ### Submitting scores
 
 - Both scoresheets are saved in one database transaction.

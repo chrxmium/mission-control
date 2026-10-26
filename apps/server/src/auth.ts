@@ -48,9 +48,7 @@ export function createSession(
     const token = randomBytes(32).toString("hex");
     const now = Date.now();
 
-    const duration = role === "referee"
-        ? REFEREE_SESSION_DURATION
-        : HEADREF_SESSION_DURATION;
+    const duration = role === "referee" ? REFEREE_SESSION_DURATION : HEADREF_SESSION_DURATION;
 
     db.insert(authSessions)
         .values({

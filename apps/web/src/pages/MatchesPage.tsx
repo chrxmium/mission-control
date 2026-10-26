@@ -136,7 +136,11 @@ export default function MatchesPage() {
     };
 
     if (loadingEvents || selectedEventId === null) {
-        return <Container maxWidth="lg" sx={{ py: 6, display: "flex", justifyContent: "center" }}><CircularProgress /></Container>;
+        return (
+            <Container maxWidth="lg" sx={{ py: 6, display: "flex", justifyContent: "center" }}>
+                <CircularProgress />
+            </Container>
+        );
     }
 
     return (
@@ -159,7 +163,9 @@ export default function MatchesPage() {
                         </Typography>
 
                         <Typography color="text.secondary">
-                            {selectedEvent ? `${selectedEvent.name} · ${selectedEvent.season}` : "Score upcoming matches and review submitted results."}
+                            {selectedEvent
+                                ? `${selectedEvent.name} · ${selectedEvent.season}`
+                                : "Score upcoming matches and review submitted results."}
                         </Typography>
                     </Box>
 

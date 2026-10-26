@@ -63,12 +63,16 @@ export const eventsRoutes = new Hono()
                 createdAt: Date.now(),
             };
 
-            const created = values.status === "active"
-                ? db.transaction((tx) => {
-                    tx.update(events).set({ status: "draft" }).where(eq(events.status, "active")).run();
-                    return tx.insert(events).values(values).returning().get();
-                })
-                : db.insert(events).values(values).returning().get();
+            const created =
+                values.status === "active"
+                    ? db.transaction((tx) => {
+                          tx.update(events)
+                              .set({ status: "draft" })
+                              .where(eq(events.status, "active"))
+                              .run();
+                          return tx.insert(events).values(values).returning().get();
+                      })
+                    : db.insert(events).values(values).returning().get();
 
             return c.json({ event: created }, 201);
         } catch (error) {
@@ -97,12 +101,26 @@ export const eventsRoutes = new Hono()
         }
 
         try {
-            const updated = parsed.output.status === "active"
-                ? db.transaction((tx) => {
-                    tx.update(events).set({ status: "draft" }).where(eq(events.status, "active")).run();
-                    return tx.update(events).set(parsed.output).where(eq(events.id, id)).returning().get();
-                })
-                : db.update(events).set(parsed.output).where(eq(events.id, id)).returning().get();
+            const updated =
+                parsed.output.status === "active"
+                    ? db.transaction((tx) => {
+                          tx.update(events)
+                              .set({ status: "draft" })
+                              .where(eq(events.status, "active"))
+                              .run();
+                          return tx
+                              .update(events)
+                              .set(parsed.output)
+                              .where(eq(events.id, id))
+                              .returning()
+                              .get();
+                      })
+                    : db
+                          .update(events)
+                          .set(parsed.output)
+                          .where(eq(events.id, id))
+                          .returning()
+                          .get();
 
             return c.json({ event: updated });
         } catch (error) {
