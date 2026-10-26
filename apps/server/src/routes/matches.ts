@@ -2,12 +2,12 @@ import * as v from "valibot";
 import { createMatchSchema } from "../validators/matches.js";
 import { isSqliteUniqueConstraintError } from "../utils/sqlite.js";
 import type { ScoreSheet } from "@mission-control/rules";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { Hono } from "hono";
 import { requireAdmin } from "../middleware/admin-auth.js";
 import { db } from "../db/index.js";
-import { matches, scoresheets, teams } from "../db/schema.js";
+import { events, matches, scoresheets, teams } from "../db/schema.js";
 import { requireSession } from "../middleware/referee-auth.js";
 import {
     sharedM05Schema,
@@ -21,19 +21,27 @@ const team1 = alias(teams, "team1");
 const team2 = alias(teams, "team2");
 
 export const matchesRoutes = new Hono()
-
     .get("/", (c) => {
+        const eventIdParam = c.req.query("eventId");
+        const activeEvent = eventIdParam === undefined
+            ? db.select({ id: events.id }).from(events).where(eq(events.status, "active")).get()
+            : undefined;
+        const eventId = eventIdParam === undefined ? activeEvent?.id : Number(eventIdParam);
+
+        if (eventId === undefined || !Number.isSafeInteger(eventId) || eventId < 1) {
+            return c.json({ matches: [] });
+        }
+
         const result = db
             .select({
                 id: matches.id,
+                eventId: matches.eventId,
                 matchNumber: matches.matchNumber,
                 scheduledAt: matches.scheduledAt,
                 status: matches.status,
-
                 team1Id: team1.id,
                 team1Number: team1.number,
                 team1Name: team1.name,
-
                 team2Id: team2.id,
                 team2Number: team2.number,
                 team2Name: team2.name,
@@ -41,21 +49,21 @@ export const matchesRoutes = new Hono()
             .from(matches)
             .innerJoin(team1, eq(matches.team1Id, team1.id))
             .leftJoin(team2, eq(matches.team2Id, team2.id))
+            .where(eq(matches.eventId, eventId))
             .orderBy(matches.matchNumber)
             .all();
 
         const formatted = result.map((match) => ({
             id: match.id,
+            eventId: match.eventId,
             matchNumber: match.matchNumber,
             scheduledAt: match.scheduledAt,
             status: match.status,
-
             team1: {
                 id: match.team1Id,
                 number: match.team1Number,
                 name: match.team1Name,
             },
-
             team2:
                 match.team2Id === null || match.team2Number === null || match.team2Name === null
                     ? null
@@ -66,19 +74,16 @@ export const matchesRoutes = new Hono()
                       },
         }));
 
-        return c.json({
-            matches: formatted,
-        });
+        return c.json({ matches: formatted });
     })
-
     .post("/", requireAdmin, async (c) => {
         const body = await c.req.json().catch(() => null);
         const parsed = v.safeParse(createMatchSchema, body);
 
         if (!parsed.success) {
             const invalidField = parsed.issues[0]?.path?.[0]?.key;
-
             const errors: Record<string, string> = {
+                eventId: "Invalid event ID",
                 matchNumber: "Invalid match number",
                 team1Id: "Invalid team 1 ID",
                 team2Id: "Invalid team 2 ID",
@@ -91,12 +96,7 @@ export const matchesRoutes = new Hono()
         const team2Id = data.team2Id ?? null;
 
         if (team2Id === data.team1Id) {
-            return c.json(
-                {
-                    error: "A team cannot play against itself",
-                },
-                400,
-            );
+            return c.json({ error: "A team cannot play against itself" }, 400);
         }
 
         const firstTeam = db.select().from(teams).where(eq(teams.id, data.team1Id)).get();
@@ -105,11 +105,27 @@ export const matchesRoutes = new Hono()
             return c.json({ error: "Team 1 not found" }, 404);
         }
 
+        const eventId = data.eventId ?? firstTeam.eventId;
+
+        if (firstTeam.eventId !== eventId) {
+            return c.json({ error: "Team 1 does not belong to this event" }, 400);
+        }
+
+        const event = db.select({ id: events.id }).from(events).where(eq(events.id, eventId)).get();
+
+        if (!event) {
+            return c.json({ error: "Event not found" }, 404);
+        }
+
         if (team2Id !== null) {
             const secondTeam = db.select().from(teams).where(eq(teams.id, team2Id)).get();
 
             if (!secondTeam) {
                 return c.json({ error: "Team 2 not found" }, 404);
+            }
+
+            if (secondTeam.eventId !== eventId) {
+                return c.json({ error: "Teams must belong to the same event" }, 400);
             }
         }
 
@@ -122,6 +138,7 @@ export const matchesRoutes = new Hono()
             const created = db
                 .insert(matches)
                 .values({
+                    eventId,
                     matchNumber: data.matchNumber,
                     team1Id: data.team1Id,
                     team2Id,
@@ -134,20 +151,13 @@ export const matchesRoutes = new Hono()
             return c.json({ match: created }, 201);
         } catch (error) {
             if (isSqliteUniqueConstraintError(error)) {
-                return c.json(
-                    {
-                        error: "Match number already exists",
-                    },
-                    409,
-                );
+                return c.json({ error: "Match number already exists in this event" }, 409);
             }
 
             console.error(error);
-
             return c.json({ error: "Failed to create match" }, 500);
         }
     })
-
     .post("/:id/submit", requireSession, async (c) => {
         const matchId = Number(c.req.param("id"));
 
@@ -204,26 +214,19 @@ export const matchesRoutes = new Hono()
             return c.json({ error: "This is a solo match" }, 400);
         }
 
-        // used when team no show
         const emptySheet: ScoreSheet = {
             m01_young_forest: 0,
             m01_grand_tree: 0,
             m01_hollow_tree: 0,
             m01_queen_knocked_down: false,
-
             m02_base: 0,
             m02_canopy: 0,
-
             m03_waterfall: 0,
-
             m04_nest: false,
             m04_hollow: false,
-
             m05_haven: 0,
-
             lu_added: 0,
             lu_contained: 0,
-
             interference: 0,
             gp: 3,
         };
@@ -232,10 +235,7 @@ export const matchesRoutes = new Hono()
             const sheet =
                 team.participation === "no_show"
                     ? emptySheet
-                    : {
-                          ...team.sheet,
-                          m05_haven: sharedM05,
-                      };
+                    : { ...team.sheet, m05_haven: sharedM05 };
 
             const prepared = prepareScoresheet({
                 ...sheet,
@@ -292,6 +292,7 @@ export const matchesRoutes = new Hono()
                 const firstScoresheet = tx
                     .insert(scoresheets)
                     .values({
+                        eventId: match.eventId,
                         ...buildScoresheetValues(
                             prepared1.data,
                             prepared1.sheet,
@@ -308,6 +309,7 @@ export const matchesRoutes = new Hono()
                     secondScoresheet = tx
                         .insert(scoresheets)
                         .values({
+                            eventId: match.eventId,
                             ...buildScoresheetValues(
                                 prepared2.data,
                                 prepared2.sheet,
@@ -324,10 +326,7 @@ export const matchesRoutes = new Hono()
                     .where(eq(matches.id, matchId))
                     .run();
 
-                return {
-                    team1: firstScoresheet,
-                    team2: secondScoresheet,
-                };
+                return { team1: firstScoresheet, team2: secondScoresheet };
             });
 
             return c.json(
@@ -348,7 +347,6 @@ export const matchesRoutes = new Hono()
             }
 
             console.error(error);
-
             return c.json({ error: "Failed to submit match" }, 500);
         }
     });

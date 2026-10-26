@@ -3,6 +3,7 @@ import * as v from "valibot";
 const positiveInteger = v.pipe(v.number(), v.integer(), v.minValue(1));
 
 export const createMatchSchema = v.object({
+    eventId: v.optional(positiveInteger),
     matchNumber: positiveInteger,
     team1Id: positiveInteger,
     team2Id: v.nullish(positiveInteger),
@@ -14,7 +15,6 @@ export type CreateMatchInput = v.InferOutput<typeof createMatchSchema>;
 import type { ScoreSheet } from "@mission-control/rules";
 
 export const submitTableNumberSchema = positiveInteger;
-
 export const sharedM05Schema = v.pipe(v.number(), v.integer(), v.minValue(0));
 
 export const submittedTeamSchema = v.object({
