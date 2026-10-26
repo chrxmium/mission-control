@@ -8,6 +8,7 @@ import { rankingsRoutes } from "./routes/rankings.js";
 import { matchesRoutes } from "./routes/matches.js";
 import { authRoutes } from "./routes/auth.js";
 import { refereesRoutes } from "./routes/referees.js";
+import { eventsRoutes } from "./routes/events.js";
 
 export const app = new Hono();
 
@@ -29,7 +30,8 @@ export const routes = app
     .route("/api/v1/rankings", rankingsRoutes)
     .route("/api/v1/matches", matchesRoutes)
     .route("/api/v1/referees", refereesRoutes)
-    .route("/api/v1/auth", authRoutes);
+    .route("/api/v1/auth", authRoutes)
+    .route("/api/v1/events", eventsRoutes);
 
 export type AppType = typeof routes;
 
