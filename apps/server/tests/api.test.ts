@@ -440,6 +440,156 @@ try {
     );
     check("Inactive referee session rejected", inactiveSession.status, 401);
 
+
+    const listedEvents = await request("GET", "/api/v1/events");
+    check("List events", listedEvents.status, 200);
+    const originalActiveEvent = listedEvents.body.events.find(
+        (event: { status: string }) => event.status === "active",
+    );
+    assert.ok(originalActiveEvent, "Expected a seeded active event");
+    const originalEventId = originalActiveEvent.id;
+
+    const secondEventResponse = await request(
+        "POST",
+        "/api/v1/events",
+        {
+            name: "Second Test Event",
+            season: "BIOGLOW 2026-2027",
+            status: "draft",
+        },
+        adminHeaders,
+    );
+    check("Create second draft event", secondEventResponse.status, 201);
+    const secondEvent = secondEventResponse.body.event;
+    check("Second event starts as draft", secondEvent.status, "draft");
+
+    const secondTeam1Response = await request(
+        "POST",
+        "/api/v1/teams",
+        { eventId: secondEvent.id, number: 1001, name: "Second Alpha" },
+        adminHeaders,
+    );
+    check("Create first team in second event", secondTeam1Response.status, 201);
+
+    const secondTeam2Response = await request(
+        "POST",
+        "/api/v1/teams",
+        { eventId: secondEvent.id, number: 1002, name: "Second Beta" },
+        adminHeaders,
+    );
+    check("Create second team in second event", secondTeam2Response.status, 201);
+
+    const secondTeam1Id = secondTeam1Response.body.team.id;
+    const secondTeam2Id = secondTeam2Response.body.team.id;
+
+    const originalTeams = await request("GET", "/api/v1/teams");
+    check("Default teams use active event", originalTeams.status, 200);
+    assert.ok(originalTeams.body.teams.some((team: { id: number }) => team.id === teamIds[0]));
+    assert.ok(!originalTeams.body.teams.some((team: { id: number }) => team.id === secondTeam1Id));
+
+    const secondEventTeams = await request("GET", `/api/v1/teams?eventId=${secondEvent.id}`);
+    check("List teams for second event", secondEventTeams.status, 200);
+    check("Second event has only its two teams", secondEventTeams.body.teams.length, 2);
+    assert.ok(secondEventTeams.body.teams.some((team: { id: number }) => team.id === secondTeam1Id));
+    assert.ok(!secondEventTeams.body.teams.some((team: { id: number }) => team.id === teamIds[0]));
+
+    const secondMatchResponse = await request(
+        "POST",
+        "/api/v1/matches",
+        {
+            eventId: secondEvent.id,
+            matchNumber: 1,
+            team1Id: secondTeam1Id,
+            team2Id: secondTeam2Id,
+        },
+        adminHeaders,
+    );
+    check("Create match in second event with reused match number", secondMatchResponse.status, 201);
+    const secondMatchId = secondMatchResponse.body.match.id;
+
+    const originalMatches = await request("GET", "/api/v1/matches");
+    check("Default matches use active event", originalMatches.status, 200);
+    check("Original event still has its two matches", originalMatches.body.matches.length, 2);
+    assert.ok(!originalMatches.body.matches.some((match: { id: number }) => match.id === secondMatchId));
+
+    const secondEventMatches = await request("GET", `/api/v1/matches?eventId=${secondEvent.id}`);
+    check("List matches for second event", secondEventMatches.status, 200);
+    check("Second event has its own match", secondEventMatches.body.matches.length, 1);
+    check("Second event match ID", secondEventMatches.body.matches[0].id, secondMatchId);
+
+    const crossEventMatch = await request(
+        "POST",
+        "/api/v1/matches",
+        {
+            eventId: secondEvent.id,
+            matchNumber: 2,
+            team1Id: teamIds[0],
+            team2Id: secondTeam2Id,
+        },
+        adminHeaders,
+    );
+    check("Reject match mixing teams from different events", crossEventMatch.status, 400);
+
+    const activateSecondEvent = await request(
+        "PATCH",
+        `/api/v1/events/${secondEvent.id}`,
+        { status: "active" },
+        adminHeaders,
+    );
+    check("Activate second event by patch", activateSecondEvent.status, 200);
+    check("Second event becomes active", activateSecondEvent.body.event.status, "active");
+
+    const eventsAfterPatchActivation = await request("GET", "/api/v1/events");
+    const activeAfterPatch = eventsAfterPatchActivation.body.events.filter(
+        (event: { status: string }) => event.status === "active",
+    );
+    check("Only one active event after patch activation", activeAfterPatch.length, 1);
+    check(
+        "Previous active event becomes draft",
+        eventsAfterPatchActivation.body.events.find(
+            (event: { id: number }) => event.id === originalEventId,
+        )?.status,
+        "draft",
+    );
+
+    const teamsAfterActivation = await request("GET", "/api/v1/teams");
+    check("Default teams follow newly active event", teamsAfterActivation.status, 200);
+    check("New active event teams", teamsAfterActivation.body.teams.length, 2);
+    assert.ok(teamsAfterActivation.body.teams.every(
+        (team: { eventId: number }) => team.eventId === secondEvent.id,
+    ));
+
+    const matchesAfterActivation = await request("GET", "/api/v1/matches");
+    check("Default matches follow newly active event", matchesAfterActivation.status, 200);
+    check("New active event match count", matchesAfterActivation.body.matches.length, 1);
+    check("New active event default match ID", matchesAfterActivation.body.matches[0].id, secondMatchId);
+
+    const thirdEventResponse = await request(
+        "POST",
+        "/api/v1/events",
+        {
+            name: "Third Active Event",
+            season: "BIOGLOW 2026-2027",
+            status: "active",
+        },
+        adminHeaders,
+    );
+    check("Create event directly as active", thirdEventResponse.status, 201);
+    check("Newly created event is active", thirdEventResponse.body.event.status, "active");
+
+    const eventsAfterPostActivation = await request("GET", "/api/v1/events");
+    const activeAfterPost = eventsAfterPostActivation.body.events.filter(
+        (event: { status: string }) => event.status === "active",
+    );
+    check("Only one active event after active creation", activeAfterPost.length, 1);
+    check(
+        "Previously active second event becomes draft",
+        eventsAfterPostActivation.body.events.find(
+            (event: { id: number }) => event.id === secondEvent.id,
+        )?.status,
+        "draft",
+    );
+
     console.log("\nAll API integration tests passed.");
 } finally {
     rmSync(testDirectory, { recursive: true, force: true });
