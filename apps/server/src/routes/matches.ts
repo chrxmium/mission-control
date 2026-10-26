@@ -2,7 +2,7 @@ import * as v from "valibot";
 import { createMatchSchema } from "../validators/matches.js";
 import { isSqliteUniqueConstraintError } from "../utils/sqlite.js";
 import type { ScoreSheet } from "@mission-control/rules";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { Hono } from "hono";
 import { requireAdmin } from "../middleware/admin-auth.js";

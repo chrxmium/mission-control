@@ -51,21 +51,24 @@ export const eventsRoutes = new Hono()
         const data = parsed.output;
 
         try {
-            const created = db
-                .insert(events)
-                .values({
-                    name: data.name,
-                    season: data.season,
-                    location: data.location ?? null,
-                    eventDate: data.eventDate ?? null,
-                    status: data.status ?? "draft",
-                    ruleset: data.ruleset ?? "BIOGLOW",
-                    tableCount: data.tableCount ?? 1,
-                    practiceMatchesEnabled: data.practiceMatchesEnabled ?? false,
-                    createdAt: Date.now(),
+            const values = {
+                name: data.name,
+                season: data.season,
+                location: data.location ?? null,
+                eventDate: data.eventDate ?? null,
+                status: data.status ?? "draft",
+                ruleset: data.ruleset ?? "BIOGLOW",
+                tableCount: data.tableCount ?? 1,
+                practiceMatchesEnabled: data.practiceMatchesEnabled ?? false,
+                createdAt: Date.now(),
+            };
+
+            const created = values.status === "active"
+                ? db.transaction((tx) => {
+                    tx.update(events).set({ status: "draft" }).where(eq(events.status, "active")).run();
+                    return tx.insert(events).values(values).returning().get();
                 })
-                .returning()
-                .get();
+                : db.insert(events).values(values).returning().get();
 
             return c.json({ event: created }, 201);
         } catch (error) {
@@ -94,12 +97,12 @@ export const eventsRoutes = new Hono()
         }
 
         try {
-            const updated = db
-                .update(events)
-                .set(parsed.output)
-                .where(eq(events.id, id))
-                .returning()
-                .get();
+            const updated = parsed.output.status === "active"
+                ? db.transaction((tx) => {
+                    tx.update(events).set({ status: "draft" }).where(eq(events.status, "active")).run();
+                    return tx.update(events).set(parsed.output).where(eq(events.id, id)).returning().get();
+                })
+                : db.update(events).set(parsed.output).where(eq(events.id, id)).returning().get();
 
             return c.json({ event: updated });
         } catch (error) {

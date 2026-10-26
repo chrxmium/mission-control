@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import * as v from "valibot";
 import { Hono } from "hono";
 import { requireAdmin } from "../middleware/admin-auth.js";

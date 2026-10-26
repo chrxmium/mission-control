@@ -7,7 +7,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { getSession, hashToken } from "../auth.js";
 import { requireHeadRefSession, requireRefereeSession } from "../middleware/referee-auth.js";
 import { db } from "../db/index.js";
-import { matches, refereeLoginCodes, refereeMatches, referees, teams } from "../db/schema.js";
+import { events, matches, refereeLoginCodes, refereeMatches, referees, teams } from "../db/schema.js";
 
 const CODE_DURATION = 5 * 60 * 1000;
 
@@ -23,6 +23,7 @@ const createRefereeSchema = v.object({
 });
 
 const assignmentSchema = v.object({
+    eventId: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
     tableNumber: v.nullable(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(99))),
     matchIds: v.array(v.pipe(v.number(), v.integer(), v.minValue(1))),
 });
@@ -31,6 +32,19 @@ function bearerSession(authorization: string | undefined) {
     if (!authorization?.startsWith("Bearer ")) return null;
     const token = authorization.slice(7);
     return token ? getSession(token) : null;
+}
+
+function resolveEventId(eventIdParam: string | undefined) {
+    if (eventIdParam === undefined) {
+        return db
+            .select({ id: events.id })
+            .from(events)
+            .where(eq(events.status, "active"))
+            .get()?.id;
+    }
+
+    const id = Number(eventIdParam);
+    return Number.isSafeInteger(id) && id > 0 ? id : undefined;
 }
 
 export const refereesRoutes = new Hono()
@@ -107,6 +121,18 @@ export const refereesRoutes = new Hono()
         });
     })
     .get("/assignment-options", requireHeadRefSession, (c) => {
+        const eventId = resolveEventId(c.req.query("eventId"));
+
+        if (eventId === undefined) {
+            return c.json({ matches: [] });
+        }
+
+        const event = db.select({ id: events.id }).from(events).where(eq(events.id, eventId)).get();
+
+        if (!event) {
+            return c.json({ error: "Event not found" }, 404);
+        }
+
         const team1 = alias(teams, "assignment_team1");
         const team2 = alias(teams, "assignment_team2");
 
@@ -122,6 +148,7 @@ export const refereesRoutes = new Hono()
             .from(matches)
             .innerJoin(team1, eq(matches.team1Id, team1.id))
             .leftJoin(team2, eq(matches.team2Id, team2.id))
+            .where(eq(matches.eventId, eventId))
             .orderBy(matches.matchNumber)
             .all()
             .map((match) => ({
@@ -193,14 +220,25 @@ export const refereesRoutes = new Hono()
         const referee = db.select().from(referees).where(eq(referees.id, id)).get();
         if (!referee) return c.json({ error: "Referee not found" }, 404);
 
+        const eventId = parsed.output.eventId;
+        if (eventId !== undefined) {
+            const event = db.select({ id: events.id }).from(events).where(eq(events.id, eventId)).get();
+            if (!event) return c.json({ error: "Event not found" }, 404);
+        }
+
         if (matchIds.length > 0) {
             const found = db
-                .select({ id: matches.id })
+                .select({ id: matches.id, eventId: matches.eventId })
                 .from(matches)
                 .where(inArray(matches.id, matchIds))
                 .all();
+
             if (found.length !== matchIds.length) {
                 return c.json({ error: "One or more matches were not found" }, 400);
+            }
+
+            if (eventId !== undefined && found.some((match) => match.eventId !== eventId)) {
+                return c.json({ error: "All assigned matches must belong to the selected event" }, 400);
             }
         }
 
@@ -273,7 +311,6 @@ export const refereesRoutes = new Hono()
         const now = Date.now();
         const expiresAt = now + CODE_DURATION;
 
-        // Replacing a QR invalidates every previous unused code for this referee.
         db.transaction((tx) => {
             tx.update(refereeLoginCodes)
                 .set({ redeemedAt: now })
