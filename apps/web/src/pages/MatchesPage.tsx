@@ -22,6 +22,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 
 import type { InferResponseType } from "hono/client";
 import { api } from "../lib/api.js";
+import { useEventContext } from "../contexts/EventContext";
 
 type MatchesResponse = InferResponseType<typeof api.api.v1.matches.$get, 200>;
 
@@ -33,6 +34,7 @@ type Scoresheet = ScoresheetsResponse["scoresheets"][number];
 
 export default function MatchesPage() {
     const navigate = useNavigate();
+    const { selectedEventId, selectedEvent, loadingEvents } = useEventContext();
 
     const [matches, setMatches] = useState<Match[]>([]);
     const [scoresheets, setScoresheets] = useState<Scoresheet[]>([]);
@@ -48,8 +50,8 @@ export default function MatchesPage() {
 
         try {
             const [matchesResponse, scoresheetsResponse] = await Promise.all([
-                api.api.v1.matches.$get(),
-                api.api.v1.scoresheets.$get(),
+                api.api.v1.matches.$get({ query: { eventId: String(selectedEventId) } }),
+                api.api.v1.scoresheets.$get({ query: { eventId: String(selectedEventId) } }),
             ]);
 
             if (!matchesResponse.ok) {
@@ -75,8 +77,8 @@ export default function MatchesPage() {
     };
 
     useEffect(() => {
-        void loadMatches();
-    }, []);
+        if (selectedEventId !== null) void loadMatches();
+    }, [selectedEventId]);
 
     const getTeamScoresheet = (match: Match, team: Team): Scoresheet | undefined => {
         return scoresheets.find(
@@ -133,6 +135,10 @@ export default function MatchesPage() {
         );
     };
 
+    if (loadingEvents || selectedEventId === null) {
+        return <Container maxWidth="lg" sx={{ py: 6, display: "flex", justifyContent: "center" }}><CircularProgress /></Container>;
+    }
+
     return (
         <Container maxWidth="lg" sx={{ py: 3 }}>
             <Stack spacing={3}>
@@ -153,7 +159,7 @@ export default function MatchesPage() {
                         </Typography>
 
                         <Typography color="text.secondary">
-                            Score upcoming matches and review submitted results.
+                            {selectedEvent ? `${selectedEvent.name} · ${selectedEvent.season}` : "Score upcoming matches and review submitted results."}
                         </Typography>
                     </Box>
 

@@ -25,12 +25,14 @@ import {
 } from "@mui/material";
 
 import { api } from "../lib/api.js";
+import { useEventContext } from "../contexts/EventContext";
 
 type RankingsResponse = InferResponseType<typeof api.api.v1.rankings.$get, 200>;
 
 type Ranking = RankingsResponse["rankings"][number];
 
 export default function RankingsPage() {
+    const { selectedEventId, selectedEvent, loadingEvents } = useEventContext();
     const [rankings, setRankings] = useState<Ranking[]>([]);
 
     const [loading, setLoading] = useState(true);
@@ -42,7 +44,7 @@ export default function RankingsPage() {
         setError("");
 
         try {
-            const response = await api.api.v1.rankings.$get();
+            const response = await api.api.v1.rankings.$get({ query: { eventId: String(selectedEventId) } });
 
             if (!response.ok) {
                 setError(`Failed to load rankings (${response.status}).`);
@@ -63,8 +65,12 @@ export default function RankingsPage() {
     };
 
     useEffect(() => {
-        void loadRankings();
-    }, []);
+        if (selectedEventId !== null) void loadRankings();
+    }, [selectedEventId]);
+
+    if (loadingEvents || selectedEventId === null) {
+        return <Box sx={{ py: 8, display: "flex", justifyContent: "center" }}><CircularProgress /></Box>;
+    }
 
     const rankedTeams = rankings.filter((team) => team.rank !== null);
 
@@ -113,7 +119,7 @@ export default function RankingsPage() {
                     </Stack>
 
                     <Typography color="text.secondary" sx={{ mt: 0.75 }}>
-                        BIOGLOW · Official Match Rankings
+                        {selectedEvent ? `${selectedEvent.name} · ${selectedEvent.season} · Official Match Rankings` : "Official Match Rankings"}
                     </Typography>
                 </Box>
 

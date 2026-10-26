@@ -7,9 +7,12 @@ import {
     Button,
     Container,
     Divider,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
     IconButton,
     Menu,
-    MenuItem,
     Stack,
     Toolbar,
     Tooltip,
@@ -23,6 +26,7 @@ import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 
 import type { ThemeMode } from "../theme";
+import { useEventContext } from "../contexts/EventContext";
 
 type AppShellProps = {
     themeMode: ThemeMode;
@@ -47,6 +51,7 @@ const links = [
 export default function AppShell({ themeMode, onThemeModeChange }: AppShellProps) {
     const location = useLocation();
     const navigate = useNavigate();
+    const { events, selectedEventId, setSelectedEventId, loadingEvents, eventsError } = useEventContext();
 
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
 
@@ -142,6 +147,32 @@ export default function AppShell({ themeMode, onThemeModeChange }: AppShellProps
                                 </Button>
                             ))}
                         </Stack>
+
+                        {/* Event selector */}
+                        <FormControl
+                            size="small"
+                            sx={{
+                                minWidth: { xs: 125, sm: 190 },
+                                maxWidth: { xs: 150, sm: 240 },
+                                ml: { xs: 0, md: 2 },
+                            }}
+                            disabled={loadingEvents || events.length === 0}
+                        >
+                            <InputLabel id="event-selector-label">Event</InputLabel>
+                            <Select
+                                labelId="event-selector-label"
+                                label="Event"
+                                value={selectedEventId ?? ""}
+                                onChange={(event) => setSelectedEventId(Number(event.target.value))}
+                                error={Boolean(eventsError)}
+                            >
+                                {events.map((event) => (
+                                    <MenuItem key={event.id} value={event.id}>
+                                        {event.name} ({event.season})
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
 
                         {/* Desktop controls */}
                         <Stack
