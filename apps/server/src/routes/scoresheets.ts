@@ -68,6 +68,10 @@ export const scoresheetsRoutes = new Hono()
             return c.json({ error: "Match not found for this team and event" }, 404);
         }
 
+        if (match.team1Id !== team.id && match.team2Id !== team.id) {
+            return c.json({ error: "Team does not participate in this match" }, 400);
+        }
+
         try {
             const newScoresheet = db
                 .insert(scoresheets)
