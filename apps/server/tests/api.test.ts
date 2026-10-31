@@ -293,6 +293,26 @@ try {
         "Invalid scoresheet metadata",
     );
 
+    const nonParticipantScoresheet = await request(
+        "POST",
+        "/api/v1/scoresheets",
+        {
+            ...emptySheet,
+            teamId: teamIds[2],
+            matchNumber: 1,
+            tableNumber: 1,
+        },
+        adminHeaders,
+    );
+
+    check("Reject manual scoresheet for non-participating team", nonParticipantScoresheet.status, 400);
+    check(
+        "Preserve manual scoresheet participation error",
+        nonParticipantScoresheet.body.error,
+        "Team does not participate in this match",
+    );
+
+
     const invalidSubmissions = [
         {
             name: "Invalid table number",
