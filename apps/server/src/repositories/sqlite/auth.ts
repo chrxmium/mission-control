@@ -13,6 +13,7 @@ import type {
     RedeemedLogin,
 } from "../../domain/types.js";
 import type { AuthRepository } from "../interfaces/auth.js";
+import { forbidden } from "../../domain/errors.js";
 
 export function createSqliteAuthRepository(db: SqliteDb): AuthRepository {
     return {
@@ -108,14 +109,15 @@ export function createSqliteAuthRepository(db: SqliteDb): AuthRepository {
                     .where(eq(refereeLoginCodes.tokenHash, input.tokenHash))
                     .get();
 
-                if (
-                    !code ||
-                    code.redeemedAt !== null ||
-                    code.expiresAt <= input.now ||
-                    !code.refereeActive ||
-                    input.session.refereeId !== code.refereeId ||
-                    input.session.role !== "referee"
-                ) {
+                if (!code || code.redeemedAt !== null || code.expiresAt <= input.now) {
+                    return null;
+                }
+
+                if (!code.refereeActive) {
+                    throw forbidden("Referee account is inactive");
+                }
+
+                if (input.session.role !== "referee") {
                     return null;
                 }
 
@@ -138,7 +140,10 @@ export function createSqliteAuthRepository(db: SqliteDb): AuthRepository {
 
                 const session = tx
                     .insert(authSessions)
-                    .values(input.session)
+                    .values({
+                        ...input.session,
+                        refereeId: code.refereeId,
+                    })
                     .returning({
                         id: authSessions.id,
                         role: authSessions.role,
