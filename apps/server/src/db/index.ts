@@ -1,12 +1,11 @@
 import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { readMigrationFiles } from "drizzle-orm/migrator";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 
-import * as schema from "./schema.js";
+import { createSqliteDb } from "./client.js";
 
 const databasePath = resolve(process.env.DATABASE_URL ?? "mission-control.db");
 const migrationsFolder = resolve(process.cwd(), "drizzle");
@@ -18,7 +17,7 @@ const sqlite = new Database(databasePath);
 
 sqlite.pragma("foreign_keys = ON");
 
-export const db = drizzle(sqlite, { schema });
+export const db = createSqliteDb(sqlite);
 
 type AppliedMigration = {
     hash: string;
