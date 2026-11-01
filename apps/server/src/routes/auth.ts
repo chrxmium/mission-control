@@ -1,90 +1,100 @@
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { Hono } from "hono";
 import * as v from "valibot";
 
-import { createSession, hashToken, verifyPassword } from "../auth.js";
-import { db } from "../db/index.js";
-import { refereeLoginCodes, referees } from "../db/schema.js";
+import { DomainError } from "../domain/errors.js";
+import type { AuthRepository } from "../repositories/interfaces/auth.js";
+import type { SessionRole } from "../domain/types.js";
 import { loginSchema } from "../validators/auth.js";
 
 const redeemSchema = v.object({
     code: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
 });
 
-export const authRoutes = new Hono()
-    .post("/headref/login", async (c) => {
-        const body = await c.req.json().catch(() => null);
-        const parsed = v.safeParse(loginSchema, body);
+const HEADREF_SESSION_DURATION = 12 * 60 * 60 * 1000;
+const REFEREE_SESSION_DURATION = 24 * 60 * 60 * 1000;
 
-        if (!parsed.success) {
-            return c.json({ error: "Invalid request" }, 400);
-        }
+function hashToken(token: string): string {
+    return createHash("sha256").update(token).digest("hex");
+}
 
-        if (!verifyPassword(parsed.output.password)) {
-            return c.json({ error: "Incorrect password" }, 401);
-        }
+function verifyPassword(suppliedPassword: string, expectedPassword: string): boolean {
+    const supplied = Buffer.from(suppliedPassword);
+    const expected = Buffer.from(expectedPassword);
 
-        const token = createSession("headref");
-        return c.json({ token, expiresIn: 43200 });
-    })
-    .post("/referee/redeem", async (c) => {
-        const body = await c.req.json().catch(() => null);
-        const parsed = v.safeParse(redeemSchema, body);
+    if (supplied.length !== expected.length) {
+        return false;
+    }
 
-        if (!parsed.success) {
-            return c.json({ error: "Invalid login code" }, 400);
-        }
+    return timingSafeEqual(supplied, expected);
+}
 
-        const now = Date.now();
-        const tokenHash = hashToken(parsed.output.code);
+export function createAuthRoutes(repository: AuthRepository, refereePassword: string) {
+    return new Hono()
+        .post("/headref/login", async (c) => {
+            const body = await c.req.json().catch(() => null);
+            const parsed = v.safeParse(loginSchema, body);
 
-        const loginCode = db
-            .select()
-            .from(refereeLoginCodes)
-            .where(eq(refereeLoginCodes.tokenHash, tokenHash))
-            .get();
+            if (!parsed.success) {
+                return c.json({ error: "Invalid request" }, 400);
+            }
 
-        if (!loginCode || loginCode.redeemedAt !== null || now >= loginCode.expiresAt) {
-            return c.json({ error: "Invalid, expired, or already-used code" }, 401);
-        }
+            if (!refereePassword || !verifyPassword(parsed.output.password, refereePassword)) {
+                return c.json({ error: "Incorrect password" }, 401);
+            }
 
-        const referee = db
-            .select()
-            .from(referees)
-            .where(eq(referees.id, loginCode.refereeId))
-            .get();
+            const token = randomBytes(32).toString("hex");
+            const now = Date.now();
 
-        if (!referee || !referee.active) {
-            return c.json({ error: "Referee account is inactive" }, 403);
-        }
+            await repository.createSession({
+                tokenHash: hashToken(token),
+                role: "headref",
+                refereeId: null,
+                createdAt: now,
+                expiresAt: now + HEADREF_SESSION_DURATION,
+            });
 
-        // Conditional update ensures a code can only be redeemed once.
-        const redeemed = db
-            .update(refereeLoginCodes)
-            .set({ redeemedAt: now })
-            .where(
-                and(
-                    eq(refereeLoginCodes.id, loginCode.id),
-                    isNull(refereeLoginCodes.redeemedAt),
-                    gt(refereeLoginCodes.expiresAt, now),
-                ),
-            )
-            .returning()
-            .get();
+            return c.json({ token, expiresIn: HEADREF_SESSION_DURATION / 1000 });
+        })
+        .post("/referee/redeem", async (c) => {
+            const body = await c.req.json().catch(() => null);
+            const parsed = v.safeParse(redeemSchema, body);
 
-        if (!redeemed) {
-            return c.json({ error: "Invalid, expired, or already-used code" }, 401);
-        }
+            if (!parsed.success) {
+                return c.json({ error: "Invalid login code" }, 400);
+            }
 
-        const token = createSession("referee", referee.id);
+            const token = randomBytes(32).toString("hex");
+            const now = Date.now();
 
-        return c.json({
-            token,
-            expiresIn: 86400,
-            referee: {
-                id: referee.id,
-                name: referee.name,
-                username: referee.username,
-            },
+            try {
+                const redeemed = await repository.redeemLoginCode({
+                    tokenHash: hashToken(parsed.output.code),
+                    now,
+                    session: {
+                        tokenHash: hashToken(token),
+                        role: "referee" satisfies SessionRole,
+                        refereeId: null,
+                        createdAt: now,
+                        expiresAt: now + REFEREE_SESSION_DURATION,
+                    },
+                });
+
+                if (!redeemed) {
+                    return c.json({ error: "Invalid, expired, or already-used code" }, 401);
+                }
+
+                return c.json({
+                    token,
+                    expiresIn: REFEREE_SESSION_DURATION / 1000,
+                    referee: redeemed.referee,
+                });
+            } catch (error) {
+                if (error instanceof DomainError && error.code === "FORBIDDEN") {
+                    return c.json({ error: "Referee account is inactive" }, 403);
+                }
+
+                throw error;
+            }
         });
-    });
+}
