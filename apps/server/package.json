@@ -9,7 +9,8 @@
         "start": "node dist/apps/server/src/index.js",
         "db:generate": "drizzle-kit generate",
         "db:migrate": "drizzle-kit migrate",
-        "test:api": "tsx tests/api.test.ts"
+        "test:api": "tsx tests/api.test.ts",
+        "test:repositories": "tsx tests/repositories.test.ts"
     },
     "repository": {
         "type": "git",
