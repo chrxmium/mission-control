@@ -1,17 +1,13 @@
 import type { MiddlewareHandler } from "hono";
 
-const adminToken = process.env.ADMIN_TOKEN;
+export function createRequireAdmin(adminToken: string): MiddlewareHandler {
+    return async (c, next) => {
+        const authorisation = c.req.header("Authorization");
 
-if (!adminToken) {
-    throw new Error("ADMIN_TOKEN is not set");
+        if (!adminToken || authorisation !== `Bearer ${adminToken}`) {
+            return c.json({ error: "Unauthorised" }, 401);
+        }
+
+        await next();
+    };
 }
-
-export const requireAdmin: MiddlewareHandler = async (c, next) => {
-    const authorisation = c.req.header("Authorization");
-
-    if (authorisation !== `Bearer ${adminToken}`) {
-        return c.json({ error: "Unauthorised" }, 401);
-    }
-
-    await next();
-};

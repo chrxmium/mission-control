@@ -1,4 +1,4 @@
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { Hono } from "hono";
 import * as v from "valibot";
 
@@ -6,6 +6,7 @@ import { DomainError } from "../domain/errors.js";
 import type { AuthRepository } from "../repositories/interfaces/auth.js";
 import type { SessionRole } from "../domain/types.js";
 import { loginSchema } from "../validators/auth.js";
+import { hashToken, verifyPassword } from "../services/auth-utils.js";
 
 const redeemSchema = v.object({
     code: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
@@ -13,21 +14,6 @@ const redeemSchema = v.object({
 
 const HEADREF_SESSION_DURATION = 12 * 60 * 60 * 1000;
 const REFEREE_SESSION_DURATION = 24 * 60 * 60 * 1000;
-
-function hashToken(token: string): string {
-    return createHash("sha256").update(token).digest("hex");
-}
-
-function verifyPassword(suppliedPassword: string, expectedPassword: string): boolean {
-    const supplied = Buffer.from(suppliedPassword);
-    const expected = Buffer.from(expectedPassword);
-
-    if (supplied.length !== expected.length) {
-        return false;
-    }
-
-    return timingSafeEqual(supplied, expected);
-}
 
 export function createAuthRoutes(repository: AuthRepository, refereePassword: string) {
     return new Hono()
