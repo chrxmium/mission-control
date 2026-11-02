@@ -10,7 +10,9 @@
         "db:generate": "drizzle-kit generate",
         "db:migrate": "drizzle-kit migrate",
         "test:api": "tsx tests/api.test.ts",
-        "test:repositories": "tsx tests/repositories.test.ts"
+        "test:repositories": "tsx tests/repositories.test.ts",
+        "db:generate:postgres": "drizzle-kit generate --config=drizzle.postgres.config.ts",
+        "db:migrate:postgres": "drizzle-kit migrate --config=drizzle.postgres.config.ts"
     },
     "repository": {
         "type": "git",
