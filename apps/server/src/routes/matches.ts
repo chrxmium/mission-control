@@ -4,8 +4,7 @@ import { Hono } from "hono";
 
 import { DomainError } from "../domain/errors.js";
 import type { Repositories } from "../repositories/interfaces/index.js";
-import { requireAdmin } from "../middleware/admin-auth.js";
-import { requireSession } from "../middleware/referee-auth.js";
+import type { MiddlewareHandler } from "hono";
 import { createMatchSchema, sharedM05Schema, submittedTeamSchema, submitTableNumberSchema, type SubmittedTeam } from "../validators/matches.js";
 import { buildScoresheetValues, prepareScoresheet } from "../services/scoring.js";
 
@@ -42,8 +41,12 @@ function repositoryError(error: unknown): { error: string; status: 400 | 404 | 4
     }
 }
 
-export function createMatchesRoutes(repositories: Pick<Repositories, "events" | "teams" | "matches">) {
+export function createMatchesRoutes(
+    repositories: Pick<Repositories, "events" | "teams" | "matches">,
+    middleware: { requireAdmin: MiddlewareHandler; requireSession: MiddlewareHandler },
+) {
     const { events, teams, matches } = repositories;
+    const { requireAdmin, requireSession } = middleware;
 
     return new Hono()
         .get("/", async (c) => {

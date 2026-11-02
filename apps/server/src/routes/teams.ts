@@ -1,6 +1,6 @@
 import * as v from "valibot";
 import { Hono } from "hono";
-import { requireAdmin } from "../middleware/admin-auth.js";
+import type { MiddlewareHandler } from "hono";
 import { DomainError } from "../domain/errors.js";
 import type { EventRepository } from "../repositories/interfaces/events.js";
 import type { TeamRepository } from "../repositories/interfaces/teams.js";
@@ -11,6 +11,7 @@ export function createTeamsRoutes(
         events: EventRepository;
         teams: TeamRepository;
     },
+    requireAdmin: MiddlewareHandler,
 ) {
     return new Hono()
         .get("/", async (c) => {

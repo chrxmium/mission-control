@@ -1,11 +1,12 @@
 import { Hono } from "hono";
-import { requireAdmin } from "../middleware/admin-auth.js";
+import type { MiddlewareHandler } from "hono";
 import { DomainError } from "../domain/errors.js";
 import type { Repositories } from "../repositories/interfaces/index.js";
 import { buildScoresheetValues, prepareScoresheet } from "../services/scoring.js";
 
 export function createScoresheetsRoutes(
     repositories: Pick<Repositories, "events" | "teams" | "matches" | "scoresheets">,
+    requireAdmin: MiddlewareHandler,
 ) {
     const { events, teams, matches, scoresheets } = repositories;
     const app = new Hono();

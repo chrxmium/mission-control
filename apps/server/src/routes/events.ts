@@ -1,6 +1,6 @@
 import * as v from "valibot";
 import { Hono } from "hono";
-import { requireAdmin } from "../middleware/admin-auth.js";
+import type { MiddlewareHandler } from "hono";
 import type { EventRepository } from "../repositories/interfaces/events.js";
 
 const eventStatus = v.picklist(["draft", "active", "completed"] as const);
@@ -18,7 +18,7 @@ const createEventSchema = v.object({
 
 const updateEventSchema = v.partial(createEventSchema);
 
-export function createEventsRoutes(repository: EventRepository) {
+export function createEventsRoutes(repository: EventRepository, requireAdmin: MiddlewareHandler) {
     return new Hono()
         .get("/", async (c) => {
             const result = await repository.list();

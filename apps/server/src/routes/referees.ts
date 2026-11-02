@@ -2,9 +2,9 @@ import { randomBytes } from "node:crypto";
 import * as v from "valibot";
 import { Hono } from "hono";
 
-import { getSession, hashToken } from "../auth.js";
+import { hashToken } from "../services/auth-utils.js";
 import { DomainError } from "../domain/errors.js";
-import { requireHeadRefSession, requireRefereeSession } from "../middleware/referee-auth.js";
+import type { createRefereeAuthMiddleware } from "../middleware/referee-auth.js";
 import type { Repositories } from "../repositories/interfaces/index.js";
 
 const CODE_DURATION = 5 * 60 * 1000;
@@ -26,20 +26,21 @@ const assignmentSchema = v.object({
     matchIds: v.array(v.pipe(v.number(), v.integer(), v.minValue(1))),
 });
 
-function bearerSession(authorization: string | undefined) {
-    if (!authorization?.startsWith("Bearer ")) return null;
-    const token = authorization.slice(7);
-    return token ? getSession(token) : null;
-}
-
 export function createRefereesRoutes(
     repositories: Pick<Repositories, "events" | "matches" | "referees" | "auth">,
+    authMiddleware: ReturnType<typeof createRefereeAuthMiddleware>,
 ) {
     const { events, matches, referees, auth } = repositories;
+    const { requireHeadRefSession, requireRefereeSession } = authMiddleware;
+
+    async function bearerSession(authorization: string | undefined) {
+        if (!authorization?.startsWith("Bearer ")) return null;
+        return authMiddleware.getSession(authorization.slice(7));
+    }
     const app = new Hono();
 
     app.get("/me", requireRefereeSession, async (c) => {
-        const session = bearerSession(c.req.header("Authorization"));
+        const session = await bearerSession(c.req.header("Authorization"));
         if (!session || session.role !== "referee" || session.refereeId === null) {
             return c.json({ error: "Referee access required" }, 403);
         }
@@ -212,7 +213,7 @@ export function createRefereesRoutes(
             return c.json({ error: "Active referee not found" }, 404);
         }
 
-        const headrefSession = bearerSession(c.req.header("Authorization"));
+        const headrefSession = await bearerSession(c.req.header("Authorization"));
         if (!headrefSession || headrefSession.role !== "headref") {
             return c.json({ error: "Head referee access required" }, 403);
         }

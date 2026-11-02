@@ -9,18 +9,25 @@ import { createAuthRoutes } from "./routes/auth.js";
 import { createRefereesRoutes } from "./routes/referees.js";
 import { createEventsRoutes } from "./routes/events.js";
 import { createTeamsRoutes } from "./routes/teams.js";
-
-import { db } from "./db/index.js";
-import { createSqliteRepositories } from "./repositories/sqlite/index.js";
+import { createRequireAdmin } from "./middleware/admin-auth.js";
+import { createRefereeAuthMiddleware } from "./middleware/referee-auth.js";
 import type { Repositories } from "./repositories/interfaces/index.js";
 
-export function createApp(repositories: Repositories) {
+export interface AppConfig {
+    adminToken: string;
+    refereePassword: string;
+    corsOrigin: string;
+}
+
+export function createApp(repositories: Repositories, config: AppConfig) {
     const app = new Hono();
+    const requireAdmin = createRequireAdmin(config.adminToken);
+    const refereeAuth = createRefereeAuthMiddleware(repositories.auth);
 
     app.use(
         "/api/*",
         cors({
-            origin: "http://localhost:5173",
+            origin: config.corsOrigin,
             allowHeaders: ["Content-Type", "Authorization"],
             allowMethods: ["GET", "POST", "PATCH", "OPTIONS"],
         }),
@@ -28,17 +35,16 @@ export function createApp(repositories: Repositories) {
 
     return app
         .route("/health", healthRoutes)
-        .route("/api/v1/teams", createTeamsRoutes(repositories))
-        .route("/api/v1/scoresheets", createScoresheetsRoutes(repositories))
+        .route("/api/v1/teams", createTeamsRoutes(repositories, requireAdmin))
+        .route("/api/v1/scoresheets", createScoresheetsRoutes(repositories, requireAdmin))
         .route("/api/v1/rankings", createRankingsRoutes(repositories))
-        .route("/api/v1/matches", createMatchesRoutes(repositories))
-        .route("/api/v1/referees", createRefereesRoutes(repositories))
-        .route("/api/v1/auth", createAuthRoutes(repositories.auth, process.env.REFEREE_PASSWORD ?? ""))
-        .route("/api/v1/events", createEventsRoutes(repositories.events));
+        .route("/api/v1/matches", createMatchesRoutes(repositories, {
+            requireAdmin,
+            requireSession: refereeAuth.requireSession,
+        }))
+        .route("/api/v1/referees", createRefereesRoutes(repositories, refereeAuth))
+        .route("/api/v1/auth", createAuthRoutes(repositories.auth, config.refereePassword))
+        .route("/api/v1/events", createEventsRoutes(repositories.events, requireAdmin));
 }
 
-const repositories = createSqliteRepositories(db);
-
-export const app = createApp(repositories);
-export const routes = app;
-export type AppType = typeof routes;
+export type AppType = ReturnType<typeof createApp>;
