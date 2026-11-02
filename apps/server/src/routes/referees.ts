@@ -1,20 +1,11 @@
-import { and, eq, inArray, isNull } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 import * as v from "valibot";
 import { Hono } from "hono";
-import { alias } from "drizzle-orm/sqlite-core";
 
 import { getSession, hashToken } from "../auth.js";
+import { DomainError } from "../domain/errors.js";
 import { requireHeadRefSession, requireRefereeSession } from "../middleware/referee-auth.js";
-import { db } from "../db/index.js";
-import {
-    events,
-    matches,
-    refereeLoginCodes,
-    refereeMatches,
-    referees,
-    teams,
-} from "../db/schema.js";
+import type { Repositories } from "../repositories/interfaces/index.js";
 
 const CODE_DURATION = 5 * 60 * 1000;
 
@@ -41,145 +32,74 @@ function bearerSession(authorization: string | undefined) {
     return token ? getSession(token) : null;
 }
 
-function resolveEventId(eventIdParam: string | undefined) {
-    if (eventIdParam === undefined) {
-        return db.select({ id: events.id }).from(events).where(eq(events.status, "active")).get()
-            ?.id;
-    }
+export function createRefereesRoutes(
+    repositories: Pick<Repositories, "events" | "matches" | "referees" | "auth">,
+) {
+    const { events, matches, referees, auth } = repositories;
+    const app = new Hono();
 
-    const id = Number(eventIdParam);
-    return Number.isSafeInteger(id) && id > 0 ? id : undefined;
-}
-
-export const refereesRoutes = new Hono()
-    .get("/me", requireRefereeSession, (c) => {
+    app.get("/me", requireRefereeSession, async (c) => {
         const session = bearerSession(c.req.header("Authorization"));
         if (!session || session.role !== "referee" || session.refereeId === null) {
             return c.json({ error: "Referee access required" }, 403);
         }
 
-        const referee = db
-            .select({
-                id: referees.id,
-                name: referees.name,
-                username: referees.username,
-                tableNumber: referees.tableNumber,
-            })
-            .from(referees)
-            .where(eq(referees.id, session.refereeId))
-            .get();
+        const referee = await referees.findById(session.refereeId);
+        if (!referee) return c.json({ error: "Referee not found" }, 404);
 
-        if (!referee) {
-            return c.json({ error: "Referee not found" }, 404);
-        }
+        const assignedMatches = await matches.listAssignedToReferee(referee.id);
 
-        const team1 = alias(teams, "dashboard_team1");
-        const team2 = alias(teams, "dashboard_team2");
-
-        const assignedMatches = db
-            .select({
-                id: matches.id,
-                matchNumber: matches.matchNumber,
-                scheduledAt: matches.scheduledAt,
-                status: matches.status,
-                team1Id: team1.id,
-                team1Number: team1.number,
-                team1Name: team1.name,
-                team2Id: team2.id,
-                team2Number: team2.number,
-                team2Name: team2.name,
-            })
-            .from(refereeMatches)
-            .innerJoin(matches, eq(refereeMatches.matchId, matches.id))
-            .innerJoin(team1, eq(matches.team1Id, team1.id))
-            .leftJoin(team2, eq(matches.team2Id, team2.id))
-            .where(eq(refereeMatches.refereeId, referee.id))
-            .orderBy(matches.matchNumber)
-            .all()
-            .map((match) => ({
+        return c.json({
+            referee: {
+                id: referee.id,
+                name: referee.name,
+                username: referee.username,
+                tableNumber: referee.tableNumber,
+            },
+            session: { expiresAt: session.expiresAt },
+            matches: assignedMatches.map(({ match, team1, team2 }) => ({
                 id: match.id,
                 matchNumber: match.matchNumber,
                 scheduledAt: match.scheduledAt,
                 status: match.status,
-                team1: {
-                    id: match.team1Id,
-                    number: match.team1Number,
-                    name: match.team1Name,
-                },
-                team2:
-                    match.team2Id === null || match.team2Number === null || match.team2Name === null
-                        ? null
-                        : {
-                              id: match.team2Id,
-                              number: match.team2Number,
-                              name: match.team2Name,
-                          },
-            }));
-
-        return c.json({
-            referee,
-            session: { expiresAt: session.expiresAt },
-            matches: assignedMatches,
+                team1,
+                team2,
+            })),
         });
-    })
-    .get("/assignment-options", requireHeadRefSession, (c) => {
-        const eventId = resolveEventId(c.req.query("eventId"));
+    });
 
-        if (eventId === undefined) {
+    app.get("/assignment-options", requireHeadRefSession, async (c) => {
+        const eventIdParam = c.req.query("eventId");
+        const activeEvent = eventIdParam === undefined ? await events.findActive() : undefined;
+        const eventId = eventIdParam === undefined ? activeEvent?.id : Number(eventIdParam);
+
+        if (eventId === undefined || !Number.isSafeInteger(eventId) || eventId < 1) {
             return c.json({ matches: [] });
         }
 
-        const event = db.select({ id: events.id }).from(events).where(eq(events.id, eventId)).get();
+        const event = await events.findById(eventId);
+        if (!event) return c.json({ error: "Event not found" }, 404);
 
-        if (!event) {
-            return c.json({ error: "Event not found" }, 404);
-        }
+        const eventMatches = await matches.listByEvent(eventId);
 
-        const team1 = alias(teams, "assignment_team1");
-        const team2 = alias(teams, "assignment_team2");
-
-        const options = db
-            .select({
-                id: matches.id,
-                matchNumber: matches.matchNumber,
-                scheduledAt: matches.scheduledAt,
-                status: matches.status,
-                team1Number: team1.number,
-                team2Number: team2.number,
-            })
-            .from(matches)
-            .innerJoin(team1, eq(matches.team1Id, team1.id))
-            .leftJoin(team2, eq(matches.team2Id, team2.id))
-            .where(eq(matches.eventId, eventId))
-            .orderBy(matches.matchNumber)
-            .all()
-            .map((match) => ({
+        return c.json({
+            matches: eventMatches.map(({ match, team1, team2 }) => ({
                 id: match.id,
                 matchNumber: match.matchNumber,
                 scheduledAt: match.scheduledAt,
                 status: match.status,
-                teams:
-                    match.team2Number === null
-                        ? `Team ${match.team1Number} (solo)`
-                        : `Team ${match.team1Number} vs Team ${match.team2Number}`,
-            }));
+                teams: team2
+                    ? `Team ${team1.number} vs Team ${team2.number}`
+                    : `Team ${team1.number} (solo)`,
+            })),
+        });
+    });
 
-        return c.json({ matches: options });
-    })
-    .get("/", requireHeadRefSession, (c) => {
-        const rows = db.select().from(referees).all();
-        const refereesWithAssignments = rows.map((referee) => ({
-            ...referee,
-            matchIds: db
-                .select({ matchId: refereeMatches.matchId })
-                .from(refereeMatches)
-                .where(eq(refereeMatches.refereeId, referee.id))
-                .all()
-                .map((row) => row.matchId),
-        }));
-        return c.json({ referees: refereesWithAssignments });
-    })
-    .post("/", requireHeadRefSession, async (c) => {
+    app.get("/", requireHeadRefSession, async (c) => {
+        return c.json({ referees: await referees.list() });
+    });
+
+    app.post("/", requireHeadRefSession, async (c) => {
         const body = await c.req.json().catch(() => null);
         const parsed = v.safeParse(createRefereeSchema, body);
 
@@ -188,22 +108,23 @@ export const refereesRoutes = new Hono()
         }
 
         try {
-            const referee = db
-                .insert(referees)
-                .values({
-                    name: parsed.output.name,
-                    username: parsed.output.username,
-                    createdAt: Date.now(),
-                })
-                .returning()
-                .get();
+            const referee = await referees.create({
+                name: parsed.output.name,
+                username: parsed.output.username,
+                createdAt: Date.now(),
+            });
 
             return c.json({ referee }, 201);
-        } catch {
-            return c.json({ error: "Username already exists" }, 409);
+        } catch (error) {
+            if (error instanceof DomainError && error.code === "CONFLICT") {
+                return c.json({ error: "Username already exists" }, 409);
+            }
+            console.error(error);
+            return c.json({ error: "Failed to create referee" }, 500);
         }
-    })
-    .patch("/:id/assignments", requireHeadRefSession, async (c) => {
+    });
+
+    app.patch("/:id/assignments", requireHeadRefSession, async (c) => {
         const id = Number(c.req.param("id"));
         if (!Number.isSafeInteger(id) || id < 1) {
             return c.json({ error: "Invalid referee ID" }, 400);
@@ -220,66 +141,49 @@ export const refereesRoutes = new Hono()
             return c.json({ error: "Duplicate match IDs are not allowed" }, 400);
         }
 
-        const referee = db.select().from(referees).where(eq(referees.id, id)).get();
+        const referee = await referees.findById(id);
         if (!referee) return c.json({ error: "Referee not found" }, 404);
 
         const eventId = parsed.output.eventId;
-        if (eventId !== undefined) {
-            const event = db
-                .select({ id: events.id })
-                .from(events)
-                .where(eq(events.id, eventId))
-                .get();
-            if (!event) return c.json({ error: "Event not found" }, 404);
+        if (eventId !== undefined && !(await events.findById(eventId))) {
+            return c.json({ error: "Event not found" }, 404);
         }
 
-        if (matchIds.length > 0) {
-            const found = db
-                .select({ id: matches.id, eventId: matches.eventId })
-                .from(matches)
-                .where(inArray(matches.id, matchIds))
-                .all();
-
-            if (found.length !== matchIds.length) {
-                return c.json({ error: "One or more matches were not found" }, 400);
+        try {
+            await referees.replaceAssignments({
+                refereeId: id,
+                tableNumber: parsed.output.tableNumber,
+                matchIds,
+                eventId,
+                assignedAt: Date.now(),
+            });
+        } catch (error) {
+            if (error instanceof DomainError) {
+                if (error.code === "NOT_FOUND") {
+                    return c.json({ error: "Referee not found" }, 404);
+                }
+                if (error.code === "VALIDATION") {
+                    if (error.message.includes("selected event")) {
+                        return c.json(
+                            { error: "All assigned matches must belong to the selected event" },
+                            400,
+                        );
+                    }
+                    return c.json({ error: "One or more matches were not found" }, 400);
+                }
             }
-
-            if (eventId !== undefined && found.some((match) => match.eventId !== eventId)) {
-                return c.json(
-                    { error: "All assigned matches must belong to the selected event" },
-                    400,
-                );
-            }
+            console.error(error);
+            return c.json({ error: "Failed to update referee assignments" }, 500);
         }
-
-        db.transaction((tx) => {
-            tx.update(referees)
-                .set({ tableNumber: parsed.output.tableNumber })
-                .where(eq(referees.id, id))
-                .run();
-
-            tx.delete(refereeMatches).where(eq(refereeMatches.refereeId, id)).run();
-
-            if (matchIds.length > 0) {
-                tx.insert(refereeMatches)
-                    .values(
-                        matchIds.map((matchId) => ({
-                            refereeId: id,
-                            matchId,
-                            assignedAt: Date.now(),
-                        })),
-                    )
-                    .run();
-            }
-        });
 
         return c.json({
             ok: true,
             tableNumber: parsed.output.tableNumber,
             matchIds,
         });
-    })
-    .patch("/:id/active", requireHeadRefSession, async (c) => {
+    });
+
+    app.patch("/:id/active", requireHeadRefSession, async (c) => {
         const id = Number(c.req.param("id"));
         if (!Number.isSafeInteger(id) || id < 1) {
             return c.json({ error: "Invalid referee ID" }, 400);
@@ -291,23 +195,19 @@ export const refereesRoutes = new Hono()
             return c.json({ error: "Expected an active boolean" }, 400);
         }
 
-        const referee = db
-            .update(referees)
-            .set({ active: parsed.output.active })
-            .where(eq(referees.id, id))
-            .returning()
-            .get();
-
+        const referee = await referees.setActive(id, parsed.output.active);
         if (!referee) return c.json({ error: "Referee not found" }, 404);
+
         return c.json({ referee });
-    })
-    .post("/:id/login-code", requireHeadRefSession, (c) => {
+    });
+
+    app.post("/:id/login-code", requireHeadRefSession, async (c) => {
         const refereeId = Number(c.req.param("id"));
         if (!Number.isSafeInteger(refereeId) || refereeId < 1) {
             return c.json({ error: "Invalid referee ID" }, 400);
         }
 
-        const referee = db.select().from(referees).where(eq(referees.id, refereeId)).get();
+        const referee = await referees.findById(refereeId);
         if (!referee || !referee.active) {
             return c.json({ error: "Active referee not found" }, 404);
         }
@@ -321,27 +221,12 @@ export const refereesRoutes = new Hono()
         const now = Date.now();
         const expiresAt = now + CODE_DURATION;
 
-        db.transaction((tx) => {
-            tx.update(refereeLoginCodes)
-                .set({ redeemedAt: now })
-                .where(
-                    and(
-                        eq(refereeLoginCodes.refereeId, refereeId),
-                        isNull(refereeLoginCodes.redeemedAt),
-                    ),
-                )
-                .run();
-
-            tx.insert(refereeLoginCodes)
-                .values({
-                    tokenHash: hashToken(code),
-                    refereeId,
-                    createdBySessionId: headrefSession.id,
-                    createdAt: now,
-                    expiresAt,
-                    redeemedAt: null,
-                })
-                .run();
+        await auth.createLoginCode({
+            tokenHash: hashToken(code),
+            refereeId,
+            createdBySessionId: headrefSession.id,
+            createdAt: now,
+            expiresAt,
         });
 
         return c.json(
@@ -358,3 +243,6 @@ export const refereesRoutes = new Hono()
             201,
         );
     });
+
+    return app;
+}
