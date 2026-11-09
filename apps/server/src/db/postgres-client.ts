@@ -10,13 +10,14 @@ neonConfig.webSocketConstructor = ws;
 
 export interface PostgresDatabaseOptions {
     connectionString: string;
-    migrationsFolder: string;
+    migrationsFolder?: string;
+    runMigrations?: boolean;
     maxConnections?: number;
 }
 
 export async function createPostgresDatabase(options: PostgresDatabaseOptions) {
     if (!options.connectionString.trim()) {
-        throw new Error("DATABASE_URL is required for PostgreSQL");
+        throw new Error("POSTGRES_DATABASE_URL is required for PostgreSQL");
     }
 
     const pool = new Pool({
@@ -27,9 +28,17 @@ export async function createPostgresDatabase(options: PostgresDatabaseOptions) {
     try {
         const db = drizzle(pool, { schema });
 
-        await migrate(db, {
-            migrationsFolder: resolve(options.migrationsFolder),
-        });
+        if (options.runMigrations ?? true) {
+            if (!options.migrationsFolder) {
+                throw new Error(
+                    "migrationsFolder is required when PostgreSQL migrations are enabled",
+                );
+            }
+
+            await migrate(db, {
+                migrationsFolder: resolve(options.migrationsFolder),
+            });
+        }
 
         console.log("PostgreSQL database is ready.");
 
