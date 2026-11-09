@@ -32,6 +32,20 @@ Made for Hack Club's YSWS Terra. Hello reviewers!!
 
 ## Setup Guide
 
+### Deploy via Vercel (Hosted)
+
+1. Click here --->   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fchrxmium%2Fmission-control)
+2. Sign in to Vercel and create a new project from the repository.
+3. Create a PostgreSQL database using a provider such as [Neon](https://neon.tech/).
+4. Add your database connection string to the project's environment variables:
+   - `DATABASE_PROVIDER=postgres`
+   - `POSTGRES_DATABASE_URL` (your PostgreSQL connection string.)
+5. Deploy the project.
+
+Once the deployment finishes, open the provided Vercel URL to access your instance.
+
+### Deploy via Building (Self-hosted)
+
 **Requirements:**
 
 - Node.js
