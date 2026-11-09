@@ -24,10 +24,10 @@ if (provider === "sqlite") {
     repositories = createSqliteRepositories(database.db);
     closeDatabase = () => { database.close(); };
 } else if (provider === "postgres") {
-    const connectionString = process.env.DATABASE_URL;
+    const connectionString = (process.env.POSTGRES_DATABASE_URL ?? process.env.DATABASE_URL);
 
     if (!connectionString?.trim()) {
-        throw new Error("DATABASE_URL is required when DATABASE_PROVIDER=postgres");
+        throw new Error("POSTGRES_DATABASE_URL is required when DATABASE_PROVIDER=postgres");
     }
 
     const database = await createPostgresDatabase({
