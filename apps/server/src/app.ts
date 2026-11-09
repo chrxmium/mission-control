@@ -2,37 +2,49 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 import { healthRoutes } from "./routes/health.js";
-import { teamsRoutes } from "./routes/teams.js";
-import { scoresheetsRoutes } from "./routes/scoresheets.js";
-import { rankingsRoutes } from "./routes/rankings.js";
-import { matchesRoutes } from "./routes/matches.js";
-import { authRoutes } from "./routes/auth.js";
-import { refereesRoutes } from "./routes/referees.js";
-import { eventsRoutes } from "./routes/events.js";
+import { createScoresheetsRoutes } from "./routes/scoresheets.js";
+import { createRankingsRoutes } from "./routes/rankings.js";
+import { createMatchesRoutes } from "./routes/matches.js";
+import { createAuthRoutes } from "./routes/auth.js";
+import { createRefereesRoutes } from "./routes/referees.js";
+import { createEventsRoutes } from "./routes/events.js";
+import { createTeamsRoutes } from "./routes/teams.js";
+import { createRequireAdmin } from "./middleware/admin-auth.js";
+import { createRefereeAuthMiddleware } from "./middleware/referee-auth.js";
+import type { Repositories } from "./repositories/interfaces/index.js";
 
-export const app = new Hono();
+export interface AppConfig {
+    adminToken: string;
+    refereePassword: string;
+    corsOrigin: string;
+}
 
-app.use(
-    "/api/*",
-    cors({
-        origin: "http://localhost:5173",
-        allowHeaders: ["Content-Type", "Authorization"],
-        allowMethods: ["GET", "POST", "PATCH", "OPTIONS"],
-    }),
-);
+export function createApp(repositories: Repositories, config: AppConfig) {
+    const app = new Hono();
+    const requireAdmin = createRequireAdmin(config.adminToken);
+    const refereeAuth = createRefereeAuthMiddleware(repositories.auth);
 
-// GET endpoint requests
+    app.use(
+        "/api/*",
+        cors({
+            origin: config.corsOrigin,
+            allowHeaders: ["Content-Type", "Authorization"],
+            allowMethods: ["GET", "POST", "PATCH", "OPTIONS"],
+        }),
+    );
 
-export const routes = app
-    .route("/health", healthRoutes)
-    .route("/api/v1/teams", teamsRoutes)
-    .route("/api/v1/scoresheets", scoresheetsRoutes)
-    .route("/api/v1/rankings", rankingsRoutes)
-    .route("/api/v1/matches", matchesRoutes)
-    .route("/api/v1/referees", refereesRoutes)
-    .route("/api/v1/auth", authRoutes)
-    .route("/api/v1/events", eventsRoutes);
+    return app
+        .route("/health", healthRoutes)
+        .route("/api/v1/teams", createTeamsRoutes(repositories, requireAdmin))
+        .route("/api/v1/scoresheets", createScoresheetsRoutes(repositories, requireAdmin))
+        .route("/api/v1/rankings", createRankingsRoutes(repositories))
+        .route("/api/v1/matches", createMatchesRoutes(repositories, {
+            requireAdmin,
+            requireSession: refereeAuth.requireSession,
+        }))
+        .route("/api/v1/referees", createRefereesRoutes(repositories, refereeAuth))
+        .route("/api/v1/auth", createAuthRoutes(repositories.auth, config.refereePassword))
+        .route("/api/v1/events", createEventsRoutes(repositories.events, requireAdmin));
+}
 
-export type AppType = typeof routes;
-
-// POST endpoint requests
+export type AppType = ReturnType<typeof createApp>;

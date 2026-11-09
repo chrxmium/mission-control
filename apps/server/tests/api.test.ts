@@ -2,20 +2,32 @@ import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createApp } from "../src/app.js";
+import { createSqliteDatabase } from "../src/db/index.js";
+import { createSqliteRepositories } from "../src/repositories/sqlite/index.js";
 
 assert.equal(process.cwd().endsWith("/apps/server"), true, "Run API tests from apps/server");
 
 const testDirectory = mkdtempSync(join(tmpdir(), "mission-control-test-"));
 
-process.env.NODE_ENV = "test";
-process.env.DATABASE_URL = join(testDirectory, "test.db");
-process.env.ADMIN_TOKEN = "integration-test-admin-token";
-process.env.REFEREE_PASSWORD = "integration-test-referee-password";
+const adminToken = "integration-test-admin-token";
+const refereePassword = "integration-test-referee-password";
 
-const { app } = await import("../src/app.js");
+const database = await createSqliteDatabase({
+    databasePath: join(testDirectory, "test.db"),
+    migrationsFolder: join(process.cwd(), "drizzle"),
+});
+
+const repositories = createSqliteRepositories(database.db);
+
+const app = createApp(repositories, {
+    adminToken,
+    refereePassword,
+    corsOrigin: "http://localhost:5173",
+});
 
 const adminHeaders = {
-    Authorization: `Bearer ${process.env.ADMIN_TOKEN}`,
+    Authorization: `Bearer ${adminToken}`,
 };
 
 async function request(
@@ -73,7 +85,7 @@ try {
     check("Admin authentication required", unauthorisedTeam.status, 401);
 
     const headLogin = await request("POST", "/api/v1/auth/headref/login", {
-        password: process.env.REFEREE_PASSWORD,
+        password: refereePassword,
     });
     check("Head referee login", headLogin.status, 200);
     assert.equal(typeof headLogin.body.token, "string");
@@ -292,6 +304,26 @@ try {
         invalidMetadata.body.error,
         "Invalid scoresheet metadata",
     );
+
+    const nonParticipantScoresheet = await request(
+        "POST",
+        "/api/v1/scoresheets",
+        {
+            ...emptySheet,
+            teamId: teamIds[2],
+            matchNumber: 1,
+            tableNumber: 1,
+        },
+        adminHeaders,
+    );
+
+    check("Reject manual scoresheet for non-participating team", nonParticipantScoresheet.status, 400);
+    check(
+        "Preserve manual scoresheet participation error",
+        nonParticipantScoresheet.body.error,
+        "Team does not participate in this match",
+    );
+
 
     const invalidSubmissions = [
         {
@@ -597,5 +629,6 @@ try {
 
     console.log("\nAll API integration tests passed.");
 } finally {
+    database.close();
     rmSync(testDirectory, { recursive: true, force: true });
 }

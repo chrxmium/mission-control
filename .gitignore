@@ -81,3 +81,6 @@ apps/web/static/workbox-*.js
 .env.*
 !.env.example
 .local-data/
+.vercel
+
+/public/

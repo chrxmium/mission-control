@@ -1,45 +1,60 @@
-import { avg, count, desc, eq, max } from "drizzle-orm";
 import { Hono } from "hono";
-import { db } from "../db/index.js";
-import { events, scoresheets, teams } from "../db/schema.js";
+import type { Repositories } from "../repositories/interfaces/index.js";
 
-export const rankingsRoutes = new Hono().get("/", (c) => {
-    const eventIdParam = c.req.query("eventId");
-    const activeEvent =
-        eventIdParam === undefined
-            ? db.select({ id: events.id }).from(events).where(eq(events.status, "active")).get()
-            : undefined;
-    const eventId = eventIdParam === undefined ? activeEvent?.id : Number(eventIdParam);
+export function createRankingsRoutes(
+    repositories: Pick<Repositories, "events" | "teams" | "scoresheets">,
+) {
+    const { events, teams, scoresheets } = repositories;
+    return new Hono()
 
-    if (eventId === undefined || !Number.isSafeInteger(eventId) || eventId < 1) {
-        return c.json({ rankings: [] });
-    }
+        .get("/", async (c) => {
+        const eventIdParam = c.req.query("eventId");
+        const activeEvent = eventIdParam === undefined ? await events.findActive() : undefined;
+        const eventId = eventIdParam === undefined ? activeEvent?.id : Number(eventIdParam);
 
-    const result = db
-        .select({
-            teamId: teams.id,
-            teamNumber: teams.number,
-            teamName: teams.name,
-            matches: count(scoresheets.id),
-            averageScore: avg(scoresheets.totalScore),
-            highScore: max(scoresheets.totalScore),
-        })
-        .from(teams)
-        .leftJoin(scoresheets, eq(teams.id, scoresheets.teamId))
-        .where(eq(teams.eventId, eventId))
-        .groupBy(teams.id)
-        .orderBy(desc(avg(scoresheets.totalScore)))
-        .all();
+        if (eventId === undefined || !Number.isSafeInteger(eventId) || eventId < 1) {
+            return c.json({ rankings: [] });
+        }
 
-    const rankings = result.map((team, index) => ({
-        rank: team.matches > 0 ? index + 1 : null,
-        teamId: team.teamId,
-        teamNumber: team.teamNumber,
-        teamName: team.teamName,
-        matches: team.matches,
-        averageScore: team.averageScore !== null ? Number(team.averageScore) : null,
-        highScore: team.highScore,
-    }));
+        const [eventTeams, eventScoresheets] = await Promise.all([
+            teams.listByEvent(eventId),
+            scoresheets.listByEvent(eventId),
+        ]);
 
-    return c.json({ rankings });
-});
+        const rankings = eventTeams
+            .map((team) => {
+                const teamScoresheets = eventScoresheets.filter(
+                    (scoresheet) => scoresheet.teamId === team.id,
+                );
+                const matches = teamScoresheets.length;
+                const totalScore = teamScoresheets.reduce(
+                    (sum, scoresheet) => sum + scoresheet.totalScore,
+                    0,
+                );
+
+                return {
+                    teamId: team.id,
+                    teamNumber: team.number,
+                    teamName: team.name,
+                    matches,
+                    averageScore: matches > 0 ? totalScore / matches : null,
+                    highScore:
+                        matches > 0
+                            ? Math.max(...teamScoresheets.map((scoresheet) => scoresheet.totalScore))
+                            : null,
+                };
+            })
+            .sort((a, b) => {
+                if (a.averageScore === null) return b.averageScore === null ? 0 : 1;
+                if (b.averageScore === null) return -1;
+                return b.averageScore - a.averageScore;
+            })
+            .map((team, index) => ({
+                rank: team.matches > 0 ? index + 1 : null,
+                ...team,
+            }));
+
+        return c.json({ rankings });
+    });
+
+}
