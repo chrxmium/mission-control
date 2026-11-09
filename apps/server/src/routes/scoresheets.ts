@@ -9,9 +9,9 @@ export function createScoresheetsRoutes(
     requireAdmin: MiddlewareHandler,
 ) {
     const { events, teams, matches, scoresheets } = repositories;
-    const app = new Hono();
+    return new Hono()
 
-    app.get("/", async (c) => {
+        .get("/", async (c) => {
         const eventIdParam = c.req.query("eventId");
         const activeEvent = eventIdParam === undefined ? await events.findActive() : undefined;
         const eventId = eventIdParam === undefined ? activeEvent?.id : Number(eventIdParam);
@@ -21,9 +21,9 @@ export function createScoresheetsRoutes(
         }
 
         return c.json({ scoresheets: await scoresheets.listByEvent(eventId) });
-    });
+        })
 
-    app.get("/:id", async (c) => {
+        .get("/:id", async (c) => {
         const id = Number(c.req.param("id"));
         if (!Number.isSafeInteger(id) || id < 1) {
             return c.json({ error: "Invalid scoresheet ID" }, 400);
@@ -33,9 +33,9 @@ export function createScoresheetsRoutes(
         if (!scoresheet) return c.json({ error: "Scoresheet not found" }, 404);
 
         return c.json({ scoresheet });
-    });
+        })
 
-    app.post("/", requireAdmin, async (c) => {
+        .post("/", requireAdmin, async (c) => {
         const body = await c.req.json().catch(() => null);
         const prepared = prepareScoresheet(body);
         if (!prepared.ok) return c.json({ error: prepared.error }, prepared.status);
@@ -72,9 +72,9 @@ export function createScoresheetsRoutes(
             console.error(error);
             return c.json({ error: "Failed to save scoresheet" }, 500);
         }
-    });
+        })
 
-    app.patch("/:id", requireAdmin, async (c) => {
+        .patch("/:id", requireAdmin, async (c) => {
         const id = Number(c.req.param("id"));
         if (!Number.isSafeInteger(id) || id < 1) {
             return c.json({ error: "Invalid scoresheet ID" }, 400);
@@ -128,5 +128,4 @@ export function createScoresheetsRoutes(
         }
     });
 
-    return app;
 }
