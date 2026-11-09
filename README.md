@@ -1,12 +1,12 @@
 # Mission Control
 
-**Mission Control** is an open-source scoring and event management platform built for the **FIRST LEGO® League 2026–2027 Future Edition (BIOGLOW)** challenge.
+**Mission Control** is an open-source scoring and event management platform originally built for the **FIRST LEGO® League 2026–2027 Future Edition (BIOGLOW)** challenge.
 
-Mission Control lets referees score matches, submit results, review scoresheets, and track rankings, all from a single web interface.
+Mission Control lets tournament directors and referees plan events, create, score and submit results, review scoresheets, and track rankings, all from a single, central web interface.
 
-Designed for FIRST Australia scoring tablets.
+Designed for FIRST Australia & FIRST UNSW scoring tablets.
 
-Soon™: Supporting all devices.
+Soon™: Supporting all devices, with different UI layouts, scoring systems, and more event management features.
 
 Made for Hack Club's YSWS Terra. Hello reviewers!!
 
@@ -17,18 +17,18 @@ Made for Hack Club's YSWS Terra. Hello reviewers!!
 
 ## Features
 
-- **Match scoring:** Score two teams simultaneously, with live calculations, shared missions, interference penalties and Gracious Professionalism ratings.
-- **Match management:** View scheduled matches, submit results, prevent duplicate submissions, and review completed scoresheets.
-- **Rankings:** Automatically calculate rankings, average scores, highest scores, and completed match counts.
-- **Referee authentication:** Password-protected scoring.
-- **Self-hosting:** Docker deployment with SQLite persistence.
+- **Match scoring:** Score two teams simultaneously (Feature for FLL Future Edition!), with live calculations, shared missions, interference penalties and Gracious Professionalism ratings.
+- **Match management:** View scheduled matches, submit match results, and review completed scoresheets.
+- **Rankings:** Automatically calculate rankings, average scores, highest scores, and completed match counts through the built in scoresheet.
+- **Role-based authentication:** Password-protected with QR code login.
+- **Hosted/Self-hosted options:** Deploy with Vercel with Postgres or on a local machine through Docker deployment with SQLite
 
 ## Stack
 
 - **Frontend:** React, TypeScript, Material UI, Vite
 - **Backend:** Node, Hono
-- **Database:** Drizzle, SQLite
-- **Deployment:** Docker, GHCR
+- **Database:** Drizzle, SQLite / Postgres
+- **Deployment:** Vercel, Docker, GHCR
 
 ## Setup Guide
 
@@ -107,7 +107,7 @@ Default port: 5173
 
 ## Scoring
 
-The scoring engine lives in `packages/rules/src/score.ts`. It currently covers these BIOGLOW missions:
+Mission Control currently covers these FIRST FLL Future Edition BIOGLOW missions:
 
 - M01: Mighty Microbiomes
 - M02: Roots of Renewal
@@ -124,26 +124,15 @@ Penalties are applied automatically. (For Futures Edition)
 - 1 violation: −10 points
 - 2 violations: −30 points total
 - 3 violations: whole match score becomes 0
--
+
+Other events and scoring systems are soon™ to be supported.
 
 ### Submitting scores
 
 - Both scoresheets are saved in one database transaction.
-- Solo matches submit a single scoresheet.
-- Rankings use average recorded scores, following FLL Future Editio. Other ranking systems are planned.
-
-## API
-
-REST are served endpoints under `/api/v1`.
-
-- `GET /teams`
-- `GET /teams/:id`
-- `GET /matches`
-- `GET /scoresheets`
-- `GET /scoresheets/:id`
-- `GET /rankings`
-- `POST /auth/login`
-- `POST /matches/:id/submit`
+- Solo/Remote matches submit a single scoresheet.
+- Team matches submit two scoresheets.
+- Rankings use average recorded scores, following FLL Future Edition rules. Other ranking systems are planned™.
 
 ## Security
 
@@ -156,11 +145,11 @@ REST are served endpoints under `/api/v1`.
 
 AI was used throughout development for frontend help, planning, debugging, code examples, and learning.
 
-AI did not access, change, or manage the repository on its own. I reviewed, integrated, and tested all the code myself.
+AI did not access, change, or manage the repository on its own. Humans reviewed, integrated, and tested all the code before implementation.
 
 ## Contributing
 
-Issues, suggestions, and pull requests are welcome.
+Issues, suggestions, and pull requests are welcome. Please request either myself ([@chrxmium](https://github.com/chrxmium)) or another maintainer to your pull request as a reviewer.
 
 - Fork the repo, make a branch, make your changes, test them, and open a PR.
 - If you change the scoring engine, please add tests.
@@ -168,7 +157,7 @@ Issues, suggestions, and pull requests are welcome.
 
 ## Disclaimer
 
-Mission Control is a community project. It is not affiliated with or endorsed by FIRST.
+Mission Control is a community-run, open-source project. It is not affiliated with or endorsed by FIRST nor any of its affiliates.
 
 FIRST, FIRST LEGO®, and related names and trademarks belong to their owners.
 
