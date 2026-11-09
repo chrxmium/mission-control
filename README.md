@@ -114,7 +114,7 @@ Mission Control currently covers these FIRST FLL Future Edition BIOGLOW missions
 - M03: Cave Waterfall
 - M04: Rainforest Awakening
 - M05: Central Haven
-- Level Up: Invasive Attack
+- Level Up Challenge: Invasive Attack
 
 ### Interference penalties
 
