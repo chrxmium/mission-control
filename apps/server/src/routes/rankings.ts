@@ -5,9 +5,9 @@ export function createRankingsRoutes(
     repositories: Pick<Repositories, "events" | "teams" | "scoresheets">,
 ) {
     const { events, teams, scoresheets } = repositories;
-    const app = new Hono();
+    return new Hono()
 
-    app.get("/", async (c) => {
+        .get("/", async (c) => {
         const eventIdParam = c.req.query("eventId");
         const activeEvent = eventIdParam === undefined ? await events.findActive() : undefined;
         const eventId = eventIdParam === undefined ? activeEvent?.id : Number(eventIdParam);
@@ -57,5 +57,4 @@ export function createRankingsRoutes(
         return c.json({ rankings });
     });
 
-    return app;
 }
