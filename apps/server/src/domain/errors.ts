@@ -6,11 +6,11 @@ export type DomainErrorCode =
     | "VALIDATION";
 
 export class DomainError extends Error {
-    constructor(
-        public readonly code: DomainErrorCode,
-        message: string,
-    ) {
+    public readonly code: DomainErrorCode;
+
+    constructor(code: DomainErrorCode, message: string) {
         super(message);
+        this.code = code;
         this.name = "DomainError";
     }
 }
