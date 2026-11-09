@@ -1,5 +1,3 @@
-import type { ScoreSheet } from "@mission-control/rules";
-
 export type EventStatus = "draft" | "active" | "completed";
 export type SessionRole = "headref" | "referee";
 
